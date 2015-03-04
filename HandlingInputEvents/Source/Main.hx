@@ -2,6 +2,7 @@ package;
 
 
 import lime.app.Application;
+import lime.app.Config;
 import lime.graphics.RenderContext;
 import lime.math.Vector2;
 import lime.ui.KeyCode;
@@ -9,20 +10,15 @@ import lime.ui.KeyModifier;
 import openfl.display.Sprite;
 import openfl.display.Stage;
 
-@:access(openfl.display.Stage)
-
 
 class Main extends Application {
 	
 	
-	private var down:Bool;
-	private var left:Bool;
-	private var right:Bool;
-	private var up:Bool;
-	
-	private var mouseDown:Bool;
-	
-	private var box:Sprite;
+	private var moveDown:Bool;
+	private var moveLeft:Bool;
+	private var moveRight:Bool;
+	private var moveUp:Bool;
+	private var square:Sprite;
 	private var stage:Stage;
 	private var targetPoint:Vector2;
 	
@@ -31,22 +27,29 @@ class Main extends Application {
 		
 		super ();
 		
-		targetPoint = new Vector2 (-1, -1);
-		
 	}
 	
 	
-	public override function init (context:RenderContext):Void {
+	public override function create (config:Config):Void {
 		
-		stage = new Stage (window.width, window.height, 0x000000);
+		super.create (config);
 		
-		box = new Sprite ();
-		box.graphics.beginFill (0xFF0000);
-		box.graphics.drawRect (0, 0, 100, 100);
-		box.x = (window.width - box.width) / 2;
-		box.y = (window.height - box.height) / 2;
+		stage = new Stage (config.width, config.height, 0xFFFFFF);
+		square = new Sprite ();
 		
-		stage.addChild (box);
+		var fill = new Sprite ();
+		fill.graphics.beginFill (0xBFFF00);
+		fill.graphics.drawRect (0, 0, 100, 100);
+		fill.x = -50;
+		fill.y = -50;
+		square.addChild (fill);
+		
+		square.x = window.width / 2;
+		square.y = window.height / 2;
+		stage.addChild (square);
+		
+		renderer.onRender.add (stage.render);
+		window.onWindowResize.add (stage.onWindowResize);
 		
 	}
 	
@@ -55,10 +58,10 @@ class Main extends Application {
 		
 		switch (key) {
 			
-			case LEFT: left = true;
-			case RIGHT: right = true;
-			case UP: up = true;
-			case DOWN: down = true;
+			case LEFT: moveLeft = true;
+			case RIGHT: moveRight = true;
+			case UP: moveUp = true;
+			case DOWN: moveDown = true;
 			default:
 			
 		}
@@ -70,10 +73,10 @@ class Main extends Application {
 		
 		switch (key) {
 			
-			case LEFT: left = false;
-			case RIGHT: right = false;
-			case UP: up = false;
-			case DOWN: down = false;
+			case LEFT: moveLeft = false;
+			case RIGHT: moveRight = false;
+			case UP: moveUp = false;
+			case DOWN: moveDown = false;
 			default:
 			
 		};
@@ -83,7 +86,11 @@ class Main extends Application {
 	
 	public override function onMouseDown (x:Float, y:Float, button:Int):Void {
 		
-		mouseDown = true;
+		if (targetPoint == null) {
+			
+			targetPoint = new Vector2 ();
+			
+		}
 		
 		targetPoint.x = x;
 		targetPoint.y = y;
@@ -93,7 +100,7 @@ class Main extends Application {
 	
 	public override function onMouseMove (x:Float, y:Float, button:Int):Void {
 		
-		if (mouseDown) {
+		if (targetPoint != null) {
 			
 			targetPoint.x = x;
 			targetPoint.y = y;
@@ -105,27 +112,21 @@ class Main extends Application {
 	
 	public override function onMouseUp (x:Float, y:Float, button:Int):Void {
 		
-		mouseDown = false;
-		
-		targetPoint.x = -1;
-		targetPoint.y = -1;
+		targetPoint = null;
 		
 	}
 	
 	
 	public override function onTouchEnd (x:Float, y:Float, id:Int):Void {
 		
-		mouseDown = false;
-		
-		targetPoint.x = -1;
-		targetPoint.y = -1;
+		targetPoint = null;
 		
 	}
 	
 	
 	public override function onTouchMove (x:Float, y:Float, button:Int):Void {
 		
-		if (mouseDown) {
+		if (targetPoint != null) {
 			
 			targetPoint.x = x;
 			targetPoint.y = y;
@@ -137,7 +138,11 @@ class Main extends Application {
 	
 	public override function onTouchStart (x:Float, y:Float, id:Int):Void {
 		
-		mouseDown = true;
+		if (targetPoint == null) {
+			
+			targetPoint = new Vector2 ();
+			
+		}
 		
 		targetPoint.x = x;
 		targetPoint.y = y;
@@ -145,73 +150,19 @@ class Main extends Application {
 	}
 	
 	
-	public override function onWindowResize (width:Int, height:Int):Void {
-		
-		stage.stageWidth = width;
-		stage.stageHeight = height;
-		
-	}
-	
-	
-	public override function render (context:RenderContext):Void {
-		
-		stage.__render (context);
-		
-	}
-	
-	
 	public override function update (deltaTime:Int):Void {
 		
-		var speed = 0.5;
+		if (moveLeft) square.x -= (0.6 * deltaTime);
+		if (moveRight) square.x += (0.6 * deltaTime);
+		if (moveUp) square.y -= (0.6 * deltaTime);
+		if (moveDown) square.y += (0.6 * deltaTime);
 		
-		if (targetPoint.x > -1 && targetPoint.y > -1) {
+		if (targetPoint != null) {
 			
-			var step = speed * deltaTime;
-			var diffX = targetPoint.x - box.x;
-			var diffY = targetPoint.y - box.y;
-			
-			if (Math.abs (diffX) < step) {
-				
-				box.x = targetPoint.x;
-				
-			} else {
-				
-				if (diffX > 0) {
-					
-					box.x += step;
-					
-				} else {
-					
-					box.x -= step;
-					
-				}
-				
-			}
-			
-			if (Math.abs (diffY) < step) {
-				
-				box.y = targetPoint.y;
-				
-			} else {
-				
-				if (diffY > 0) {
-					
-					box.y += step;
-					
-				} else {
-					
-					box.y -= step;
-					
-				}
-				
-			}
+			square.x += (targetPoint.x - square.x) * (deltaTime / 300);
+			square.y += (targetPoint.y - square.y) * (deltaTime / 300);
 			
 		}
-		
-		if (left) box.x -= (speed * deltaTime);
-		if (right) box.x += (speed * deltaTime);
-		if (up) box.y -= (speed * deltaTime);
-		if (down) box.y += (speed * deltaTime);
 		
 	}
 	

@@ -48,8 +48,7 @@ class Main extends Application {
 		square.y = window.height / 2;
 		stage.addChild (square);
 		
-		renderer.onRender.add (stage.render);
-		window.onWindowResize.add (stage.onWindowResize);
+		addModule (stage);
 		
 	}
 	

@@ -19,10 +19,10 @@ class TextField {
 	private var size:Int;
 	private var text:String;
 	private var image:ImageBuffer;
-	private var points:Array<TextLayout.PosInfo>;
+	private var points:Array<TextEngine.PosInfo>;
 	
 	
-	public function new (text:String, size:Int, textFormat:TextLayout, font:Font, context:RenderContext, x:Float=0, y:Float=0) {
+	public function new (text:String, size:Int, textFormat:TextEngine, font:Font, context:RenderContext, x:Float=0, y:Float=0) {
 		
 		points = textFormat.layout (font, size, text);
 		image = font.createImage ();
@@ -34,7 +34,7 @@ class TextField {
 	}
 	
 	
-	public function init (context:RenderContext, textFormat:TextLayout, font:Font, x:Float, y:Float) {
+	public function init (context:RenderContext, textFormat:TextEngine, font:Font, x:Float, y:Float) {
 		
 		switch (context) {
 			
@@ -203,17 +203,17 @@ class Main extends Application {
 	public override function init (context:RenderContext):Void {
 		
 		textFields.push(new TextField ("صِف خَلقَ خَودِ كَمِثلِ الشَمسِ إِذ بَزَغَت — يَحظى الضَجيعُ بِها نَجلاءَ مِعطارِ", 16,
-			new TextLayout (RIGHT_TO_LEFT, ARABIC, "ar"),
+			new TextEngine (RIGHT_TO_LEFT, ARABIC, "ar"),
 			Font.fromFile ("assets/amiri-regular.ttf"),
 			context, window.width, 80));
 		
 		textFields.push(new TextField ("The quick brown fox jumps over the lazy dog.", 16,
-			new TextLayout (LEFT_TO_RIGHT, LATIN, "en"),
+			new TextEngine (LEFT_TO_RIGHT, LATIN, "en"),
 			Font.fromFile ("assets/amiri-regular.ttf"),
 			context, 20, 20));
 		
 		textFields.push(new TextField ("懶惰的姜貓", 32,
-			new TextLayout (TOP_TO_BOTTOM, HAN, "zh"),
+			new TextEngine (TOP_TO_BOTTOM, HAN, "zh"),
 			Font.fromFile ("assets/fireflysung.ttf"),
 			context, 50, 170));
 		

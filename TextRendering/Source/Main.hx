@@ -18,14 +18,15 @@ class TextField {
 	private var numTriangles:Int;
 	private var size:Int;
 	private var text:String;
-	private var image:ImageBuffer;
+	private var images:Map<Int, Glyph>;
 	private var points:Array<TextEngine.PosInfo>;
 	
 	
 	public function new (text:String, size:Int, textFormat:TextEngine, font:Font, context:RenderContext, x:Float=0, y:Float=0) {
 		
 		points = textFormat.layout (font, size, text);
-		image = font.createImage ();
+		images = font.renderGlyphs (size, new GlyphSet (text));
+		
 		this.text = text;
 		this.size = size;
 		
@@ -63,8 +64,6 @@ class TextField {
 				var vertices = new Array<Float>();
 				var indices = new Array<Int>();
 				var left, top, right, bottom;
-				var glyphRects = font.glyphs.get (size);
-				if (glyphRects == null) return;
 				
 				if (textFormat.direction == RIGHT_TO_LEFT) {
 					
@@ -72,8 +71,8 @@ class TextField {
 					
 					for (p in points) {
 						
-						if (!glyphRects.exists(p.codepoint)) continue;
-						var glyph = glyphRects.get(p.codepoint);
+						if (!images.exists(p.codepoint)) continue;
+						var glyph = images.get(p.codepoint);
 						
 						width += p.advance.x;
 						
@@ -83,20 +82,24 @@ class TextField {
 					
 				}
 				
+				var buffer = null;
+				
 				for (p in points) {
 					
-					if (!glyphRects.exists(p.codepoint)) continue;
-					var glyph = glyphRects.get(p.codepoint);
+					if (!images.exists(p.codepoint)) continue;
+					var glyph = images.get(p.codepoint);
 					
-					left   = glyph.x / image.width;
-					top    = glyph.y / image.height;
-					right  = left + glyph.width / image.width;
-					bottom = top + glyph.height / image.height;
+					buffer = glyph.image.buffer;
 					
-					var pointLeft = x + p.offset.x + glyph.xOffset;
-					var pointTop = y + p.offset.y - glyph.yOffset;
-					var pointRight = pointLeft + glyph.width;
-					var pointBottom = pointTop + glyph.height;
+					left   = glyph.image.offsetX / buffer.width;
+					top    = glyph.image.offsetY / buffer.height;
+					right  = left + glyph.image.width / buffer.width;
+					bottom = top + glyph.image.height / buffer.height;
+					
+					var pointLeft = x + p.offset.x + glyph.x;
+					var pointTop = y + p.offset.y - glyph.y;
+					var pointRight = pointLeft + glyph.image.width;
+					var pointBottom = pointTop + glyph.image.height;
 					
 					vertices.push(pointRight);
 					vertices.push(pointBottom);
@@ -139,13 +142,13 @@ class TextField {
 				gl.bindBuffer (gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 				gl.bufferData (gl.ELEMENT_ARRAY_BUFFER, new UInt8Array (cast indices), gl.STATIC_DRAW);
 				
-				var format = image.bitsPerPixel == 1 ? GL.ALPHA : GL.RGBA;
+				var format = buffer.bitsPerPixel == 1 ? GL.ALPHA : GL.RGBA;
 				texture = gl.createTexture ();
 				gl.bindTexture (gl.TEXTURE_2D, texture);
 				#if js
-				gl.texImage2D (gl.TEXTURE_2D, 0, format, format, gl.UNSIGNED_BYTE, image.src);
+				gl.texImage2D (gl.TEXTURE_2D, 0, format, format, gl.UNSIGNED_BYTE, buffer.src);
 				#else
-				gl.texImage2D (gl.TEXTURE_2D, 0, format, image.width, image.height, 0, format, gl.UNSIGNED_BYTE, image.data);
+				gl.texImage2D (gl.TEXTURE_2D, 0, format, buffer.width, buffer.height, 0, format, gl.UNSIGNED_BYTE, buffer.data);
 				#end
 				gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 				gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);

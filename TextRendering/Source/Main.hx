@@ -18,14 +18,15 @@ class TextField {
 	private var numTriangles:Int;
 	private var size:Int;
 	private var text:String;
-	private var images:Map<Int, Glyph>;
+	private var images:Map<Int, Image>;
 	private var points:Array<TextEngine.PosInfo>;
 	
 	
 	public function new (text:String, size:Int, textFormat:TextEngine, font:Font, context:RenderContext, x:Float=0, y:Float=0) {
 		
 		points = textFormat.layout (font, size, text);
-		images = font.renderGlyphs (size, new GlyphSet (text));
+		var glyphs = font.getGlyphs (text);
+		images = font.renderGlyphs (glyphs, size);
 		
 		this.text = text;
 		this.size = size;
@@ -71,8 +72,8 @@ class TextField {
 					
 					for (p in points) {
 						
-						if (!images.exists(p.codepoint)) continue;
-						var glyph = images.get(p.codepoint);
+						//if (!images.exists(p.codepoint)) continue;
+						//var image = images.get(p.codepoint);
 						
 						width += p.advance.x;
 						
@@ -86,48 +87,51 @@ class TextField {
 				
 				for (p in points) {
 					
-					if (!images.exists(p.codepoint)) continue;
-					var glyph = images.get(p.codepoint);
-					
-					buffer = glyph.image.buffer;
-					
-					left   = glyph.image.offsetX / buffer.width;
-					top    = glyph.image.offsetY / buffer.height;
-					right  = left + glyph.image.width / buffer.width;
-					bottom = top + glyph.image.height / buffer.height;
-					
-					var pointLeft = x + p.offset.x + glyph.x;
-					var pointTop = y + p.offset.y - glyph.y;
-					var pointRight = pointLeft + glyph.image.width;
-					var pointBottom = pointTop + glyph.image.height;
-					
-					vertices.push(pointRight);
-					vertices.push(pointBottom);
-					vertices.push(right);
-					vertices.push(bottom);
-					
-					vertices.push(pointLeft);
-					vertices.push(pointBottom);
-					vertices.push(left);
-					vertices.push(bottom);
-					
-					vertices.push(pointRight);
-					vertices.push(pointTop);
-					vertices.push(right);
-					vertices.push(top);
-					
-					vertices.push(pointLeft);
-					vertices.push(pointTop);
-					vertices.push(left);
-					vertices.push(top);
-					
-					var i = Std.int(indices.length / 6) * 4;
-					indices.push(i);
-					indices.push(i+1);
-					indices.push(i+2);
-					indices.push(i+1);
-					indices.push(i+2);
-					indices.push(i+3);
+					if (images.exists(p.codepoint)) {
+						
+						var image = images.get(p.codepoint);
+						
+						buffer = image.buffer;
+						
+						left   = image.offsetX / buffer.width;
+						top    = image.offsetY / buffer.height;
+						right  = left + image.width / buffer.width;
+						bottom = top + image.height / buffer.height;
+						
+						var pointLeft = x + p.offset.x + image.x;
+						var pointTop = y + p.offset.y - image.y;
+						var pointRight = pointLeft + image.width;
+						var pointBottom = pointTop + image.height;
+						
+						vertices.push(pointRight);
+						vertices.push(pointBottom);
+						vertices.push(right);
+						vertices.push(bottom);
+						
+						vertices.push(pointLeft);
+						vertices.push(pointBottom);
+						vertices.push(left);
+						vertices.push(bottom);
+						
+						vertices.push(pointRight);
+						vertices.push(pointTop);
+						vertices.push(right);
+						vertices.push(top);
+						
+						vertices.push(pointLeft);
+						vertices.push(pointTop);
+						vertices.push(left);
+						vertices.push(top);
+						
+						var i = Std.int(indices.length / 6) * 4;
+						indices.push(i);
+						indices.push(i+1);
+						indices.push(i+2);
+						indices.push(i+1);
+						indices.push(i+2);
+						indices.push(i + 3);
+						
+					}
 					
 					x += p.advance.x;
 					y -= p.advance.y; // flip because of y-axis direction

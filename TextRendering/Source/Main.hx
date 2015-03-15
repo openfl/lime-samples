@@ -14,6 +14,7 @@ import lime.text.TextLayout;
 import lime.utils.Float32Array;
 import lime.utils.GLUtils;
 import lime.utils.UInt8Array;
+import lime.Assets;
 
 
 class Main extends Application {
@@ -36,14 +37,14 @@ class Main extends Application {
 	
 	public override function init (context:RenderContext):Void {
 		
-		var font = Font.fromFile ("assets/amiri-regular.ttf");
+		var font = Assets.getFont ("assets/amiri-regular.ttf");
 		var textLayout = new TextLayout ("صِف خَلقَ خَودِ كَمِثلِ الشَمسِ إِذ بَزَغَت — يَحظى الضَجيعُ بِها نَجلاءَ مِعطارِ", font, 16, RIGHT_TO_LEFT, ARABIC, "ar");
 		textFields.push (new TextRender (textLayout, window.width, 80));
 		
 		var textLayout = new TextLayout ("The quick brown fox jumps over the lazy dog.", font, 16);
 		textFields.push (new TextRender (textLayout, 20, 20));
 		
-		var font = Font.fromFile ("assets/fireflysung.ttf");
+		var font = Assets.getFont ("assets/fireflysung.ttf");
 		var textLayout = new TextLayout ("懶惰的姜貓", font, 32, TOP_TO_BOTTOM, HAN, "zh");
 		textFields.push (new TextRender (textLayout, 50, 170));
 		

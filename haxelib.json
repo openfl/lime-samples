@@ -1,0 +1,11 @@
+{
+  "name": "lime-samples",
+  "url": "http://github.com/openfl/lime-samples",
+  "license": "MIT",
+  "tags": [ ],
+  "description": "Lime samples",
+  "version": "2.2.0",
+  "releasenote": "Add text rendering and input event samples",
+  "contributors": [ "singmajesty" ],
+  "dependencies": {}
+}

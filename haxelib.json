@@ -4,8 +4,8 @@
   "license": "MIT",
   "tags": [ ],
   "description": "Lime samples",
-  "version": "2.2.0",
-  "releasenote": "Add text rendering and input event samples",
+  "version": "2.3.0",
+  "releasenote": "Update for Lime 2.3",
   "contributors": [ "singmajesty" ],
   "dependencies": {}
 }

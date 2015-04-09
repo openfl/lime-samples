@@ -97,7 +97,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onMouseMove (x:Float, y:Float, button:Int):Void {
+	public override function onMouseMove (x:Float, y:Float):Void {
 		
 		if (targetPoint != null) {
 			

@@ -30,107 +30,106 @@ class Main extends Application {
 	}
 	
 	
-	public override function init (context:RenderContext):Void {
+	public override function render (context:RenderContext):Void {
 		
-		image = Assets.getImage ("assets/lime.png");
-		
-		switch (context) {
+		if (image == null) {
 			
-			case CANVAS (context):
-				
-				context.fillStyle = "#" + StringTools.hex (config.background, 6);
-				context.fillRect (0, 0, window.width, window.height);
-				context.drawImage (image.src, 0, 0, image.width, image.height);
+			image = Assets.getImage ("assets/lime.png");
 			
-			case DOM (element):
+			switch (context) {
 				
-				element.style.backgroundColor = "#" + StringTools.hex (config.background, 6);
-				element.appendChild (image.src);
-			
-			case FLASH (sprite):
+				case CANVAS (context):
+					
+					context.fillStyle = "#" + StringTools.hex (config.background, 6);
+					context.fillRect (0, 0, window.width, window.height);
+					context.drawImage (image.src, 0, 0, image.width, image.height);
 				
-				#if flash
-				var bitmap = new flash.display.Bitmap (image.src);
-				sprite.addChild (bitmap);
-				#end
-			
-			case OPENGL (gl):
+				case DOM (element):
+					
+					element.style.backgroundColor = "#" + StringTools.hex (config.background, 6);
+					element.appendChild (image.src);
 				
-				var vertexSource = 
+				case FLASH (sprite):
 					
-					"attribute vec4 aPosition;
-					attribute vec2 aTexCoord;
-					varying vec2 vTexCoord;
-					
-					uniform mat4 uMatrix;
-					
-					void main(void) {
-						
-						vTexCoord = aTexCoord;
-						gl_Position = uMatrix * aPosition;
-						
-					}";
-				
-				var fragmentSource = 
-					
-					#if !desktop
-					"precision mediump float;" +
+					#if flash
+					var bitmap = new flash.display.Bitmap (image.src);
+					sprite.addChild (bitmap);
 					#end
-					"varying vec2 vTexCoord;
-					uniform sampler2D uImage0;
+				
+				case OPENGL (gl):
 					
-					void main(void)
-					{
-						gl_FragColor = texture2D (uImage0, vTexCoord);
-					}";
-				
-				program = GLUtils.createProgram (vertexSource, fragmentSource);
-				gl.useProgram (program);
-				
-				vertexAttribute = gl.getAttribLocation (program, "aPosition");
-				textureAttribute = gl.getAttribLocation (program, "aTexCoord");
-				matrixUniform = gl.getUniformLocation (program, "uMatrix");
-				var imageUniform = gl.getUniformLocation (program, "uImage0");
-				
-				gl.enableVertexAttribArray (vertexAttribute);
-				gl.enableVertexAttribArray (textureAttribute);
-				gl.uniform1i (imageUniform, 0);
-				
-				var data = [
+					var vertexSource = 
+						
+						"attribute vec4 aPosition;
+						attribute vec2 aTexCoord;
+						varying vec2 vTexCoord;
+						
+						uniform mat4 uMatrix;
+						
+						void main(void) {
+							
+							vTexCoord = aTexCoord;
+							gl_Position = uMatrix * aPosition;
+							
+						}";
 					
-					image.width, image.height, 0, 1, 1,
-					0, image.height, 0, 0, 1,
-					image.width, 0, 0, 1, 0,
-					0, 0, 0, 0, 0
+					var fragmentSource = 
+						
+						#if !desktop
+						"precision mediump float;" +
+						#end
+						"varying vec2 vTexCoord;
+						uniform sampler2D uImage0;
+						
+						void main(void)
+						{
+							gl_FragColor = texture2D (uImage0, vTexCoord);
+						}";
 					
-				];
+					program = GLUtils.createProgram (vertexSource, fragmentSource);
+					gl.useProgram (program);
+					
+					vertexAttribute = gl.getAttribLocation (program, "aPosition");
+					textureAttribute = gl.getAttribLocation (program, "aTexCoord");
+					matrixUniform = gl.getUniformLocation (program, "uMatrix");
+					var imageUniform = gl.getUniformLocation (program, "uImage0");
+					
+					gl.enableVertexAttribArray (vertexAttribute);
+					gl.enableVertexAttribArray (textureAttribute);
+					gl.uniform1i (imageUniform, 0);
+					
+					var data = [
+						
+						image.width, image.height, 0, 1, 1,
+						0, image.height, 0, 0, 1,
+						image.width, 0, 0, 1, 0,
+						0, 0, 0, 0, 0
+						
+					];
+					
+					buffer = gl.createBuffer ();
+					gl.bindBuffer (gl.ARRAY_BUFFER, buffer);
+					gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (cast data), gl.STATIC_DRAW);
+					gl.bindBuffer (gl.ARRAY_BUFFER, null);
+					
+					texture = gl.createTexture ();
+					gl.bindTexture (gl.TEXTURE_2D, texture);
+					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+					#if js
+					gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image.src);
+					#else
+					gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, image.buffer.width, image.buffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image.data);
+					#end
+					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+					gl.bindTexture (gl.TEXTURE_2D, null);
 				
-				buffer = gl.createBuffer ();
-				gl.bindBuffer (gl.ARRAY_BUFFER, buffer);
-				gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (cast data), gl.STATIC_DRAW);
-				gl.bindBuffer (gl.ARRAY_BUFFER, null);
+				default:
 				
-				texture = gl.createTexture ();
-				gl.bindTexture (gl.TEXTURE_2D, texture);
-				gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-				gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-				#if js
-				gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image.src);
-				#else
-				gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, image.buffer.width, image.buffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image.data);
-				#end
-				gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-				gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-				gl.bindTexture (gl.TEXTURE_2D, null);
-			
-			default:
+			}
 			
 		}
-		
-	}
-	
-	
-	public override function render (context:RenderContext):Void {
 		
 		switch (context) {
 			

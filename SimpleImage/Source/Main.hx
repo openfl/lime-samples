@@ -2,6 +2,7 @@ package;
 
 
 import lime.app.Application;
+import lime.graphics.cairo.*;
 import lime.graphics.opengl.*;
 import lime.graphics.Image;
 import lime.graphics.RenderContext;
@@ -37,6 +38,22 @@ class Main extends Application {
 			image = Assets.getImage ("assets/lime.png");
 			
 			switch (context) {
+				
+				case CAIRO (cairo):
+					
+					var r = ((config.background >> 16) & 0xFF) / 0xFF;
+					var g = ((config.background >> 8) & 0xFF) / 0xFF;
+					var b = (config.background & 0xFF) / 0xFF;
+					var a = ((config.background >> 24) & 0xFF) / 0xFF;
+					
+					cairo.setSourceRGB (r, g, b);
+					cairo.paint ();
+					
+					image.format = BGRA;
+					var surface = CairoSurface.fromImage (image);
+					cairo.setSourceSurface (surface, 0, 0);
+					cairo.paint ();
+					surface.destroy ();
 				
 				case CANVAS (context):
 					

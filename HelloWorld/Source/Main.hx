@@ -21,6 +21,11 @@ class Main extends Application {
 		
 		switch (context) {
 			
+			case CAIRO (cairo):
+				
+				cairo.setSourceRGB (0.75, 1, 0);
+				cairo.paint ();
+			
 			case CANVAS (context):
 				
 				context.fillStyle = "#BFFF00";

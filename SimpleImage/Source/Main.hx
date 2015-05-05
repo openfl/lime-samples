@@ -50,6 +50,8 @@ class Main extends Application {
 					cairo.paint ();
 					
 					image.format = BGRA;
+					image.premultiplied = true;
+					
 					var surface = CairoSurface.fromImage (image);
 					cairo.setSourceSurface (surface, 0, 0);
 					cairo.paint ();
@@ -114,6 +116,9 @@ class Main extends Application {
 					gl.enableVertexAttribArray (vertexAttribute);
 					gl.enableVertexAttribArray (textureAttribute);
 					gl.uniform1i (imageUniform, 0);
+					
+					gl.blendFunc (gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+					gl.enable (gl.BLEND);
 					
 					var data = [
 						

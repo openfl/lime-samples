@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension>
+	
+	<sample path="demos" />
+	<sample path="features/audio" />
+	<sample path="features/graphics" />
+	<sample path="features/input" />
+	<sample path="features/text" />
+	
+</extension>

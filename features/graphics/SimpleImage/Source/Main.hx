@@ -52,7 +52,7 @@ class Main extends Application {
 					image.format = BGRA;
 					image.premultiplied = true;
 					
-					var surface = CairoSurface.fromImage (image);
+					var surface = CairoImageSurface.fromImage (image);
 					cairo.setSourceSurface (surface, 0, 0);
 					cairo.paint ();
 					surface.destroy ();

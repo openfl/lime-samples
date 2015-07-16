@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
 	
-	<meta title="Handling Input Events" package="org.openfl.lime.handlinginputevents" version="1.0.0" company="OpenFL" />
+	<meta title="Gamepad Input" package="org.openfl.lime.gamepadinput" version="1.0.0" company="OpenFL" />
 	<app main="Main" path="Export" file="HandlingInputEvents" />
 	
 	<source path="Source" />

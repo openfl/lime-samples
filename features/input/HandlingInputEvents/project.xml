@@ -9,7 +9,6 @@
 	<haxelib name="lime" />
 	<haxelib name="openfl" />
 	
-	<assets path="Assets" rename="assets" exclude="lime.svg" />
-	<icon path="Assets/lime.svg" />
+	<assets path="Assets" rename="assets" />
 	
 </project>

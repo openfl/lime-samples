@@ -49,7 +49,7 @@ class Main extends Application {
 					cairo.setSourceRGB (r, g, b);
 					cairo.paint ();
 					
-					image.format = BGRA;
+					image.format = BGRA32;
 					image.premultiplied = true;
 					
 					var surface = CairoImageSurface.fromImage (image);

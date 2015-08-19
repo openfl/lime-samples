@@ -17,16 +17,16 @@
   <classpaths>
     <class path="D:\Development\Haxe\lime" />
     <class path="Source" />
-    <class path="Export\html5\haxe" />
+    <class path="Export\flash\haxe" />
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="lime=2.5.3&#xA;tools=2.5.3&#xA;no-compilation&#xA;lime-html5&#xA;html5&#xA;web&#xA;html5&#xA;html" />
+    <option directives="lime=2.5.3&#xA;tools=2.5.3&#xA;no-compilation&#xA;web" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />
     <option enabledebug="False" />
-    <option additional="-debug " />
+    <option additional="-swf-version 11.2&#xA;-debug " />
   </build>
   <!-- haxelib libraries -->
   <haxelib>

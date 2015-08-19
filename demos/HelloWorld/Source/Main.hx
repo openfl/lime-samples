@@ -2,7 +2,7 @@ package;
 
 
 import lime.app.Application;
-import lime.graphics.RenderContext;
+import lime.graphics.Renderer;
 
 
 class Main extends Application {
@@ -17,9 +17,9 @@ class Main extends Application {
 	}
 	
 	
-	public override function render (context:RenderContext):Void {
+	public override function render (renderer:Renderer):Void {
 		
-		switch (context) {
+		switch (renderer.context) {
 			
 			case CAIRO (cairo):
 				

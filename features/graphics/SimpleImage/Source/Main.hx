@@ -5,7 +5,7 @@ import lime.app.Application;
 import lime.graphics.cairo.*;
 import lime.graphics.opengl.*;
 import lime.graphics.Image;
-import lime.graphics.RenderContext;
+import lime.graphics.Renderer;
 import lime.math.Matrix4;
 import lime.utils.Float32Array;
 import lime.utils.GLUtils;
@@ -32,13 +32,13 @@ class Main extends Application {
 	}
 	
 	
-	public override function render (context:RenderContext):Void {
+	public override function render (renderer:Renderer):Void {
 		
 		if (image == null && preloader.complete) {
 			
 			image = Assets.getImage ("assets/lime.png");
 			
-			switch (context) {
+			switch (renderer.context) {
 				
 				case CAIRO (cairo):
 					
@@ -143,7 +143,7 @@ class Main extends Application {
 			
 		}
 		
-		switch (context) {
+		switch (renderer.context) {
 			
 			case CAIRO (cairo):
 				

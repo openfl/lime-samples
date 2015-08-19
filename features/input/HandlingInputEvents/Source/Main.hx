@@ -7,6 +7,7 @@ import lime.graphics.RenderContext;
 import lime.math.Vector2;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
+import lime.ui.Window;
 import openfl.display.Sprite;
 import openfl.display.Stage;
 
@@ -83,7 +84,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onMouseDown (x:Float, y:Float, button:Int):Void {
+	public override function onMouseDown (window:Window, x:Float, y:Float, button:Int):Void {
 		
 		if (targetPoint == null) {
 			
@@ -97,7 +98,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onMouseMove (x:Float, y:Float):Void {
+	public override function onMouseMove (window:Window, x:Float, y:Float):Void {
 		
 		if (targetPoint != null) {
 			
@@ -109,21 +110,21 @@ class Main extends Application {
 	}
 	
 	
-	public override function onMouseUp (x:Float, y:Float, button:Int):Void {
+	public override function onMouseUp (window:Window, x:Float, y:Float, button:Int):Void {
 		
 		targetPoint = null;
 		
 	}
 	
 	
-	public override function onTouchEnd (x:Float, y:Float, id:Int):Void {
+	public override function onTouchEnd (window:Window, x:Float, y:Float, id:Int):Void {
 		
 		targetPoint = null;
 		
 	}
 	
 	
-	public override function onTouchMove (x:Float, y:Float, button:Int):Void {
+	public override function onTouchMove (window:Window, x:Float, y:Float, button:Int):Void {
 		
 		if (targetPoint != null) {
 			
@@ -135,7 +136,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onTouchStart (x:Float, y:Float, id:Int):Void {
+	public override function onTouchStart (window:Window, x:Float, y:Float, id:Int):Void {
 		
 		if (targetPoint == null) {
 			

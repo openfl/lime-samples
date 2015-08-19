@@ -7,7 +7,7 @@ import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLTexture;
 import lime.graphics.opengl.GLUniformLocation;
 import lime.graphics.Image;
-import lime.graphics.RenderContext;
+import lime.graphics.Renderer;
 import lime.math.Matrix4;
 import lime.text.Font;
 import lime.text.TextLayout;
@@ -35,20 +35,9 @@ class Main extends Application {
 	}
 	
 	
-	public override function init (context:RenderContext):Void {
+	public override function init (application:Application):Void {
 		
-		var font = Assets.getFont ("assets/amiri-regular.ttf");
-		var textLayout = new TextLayout ("صِف خَلقَ خَودِ كَمِثلِ الشَمسِ إِذ بَزَغَت — يَحظى الضَجيعُ بِها نَجلاءَ مِعطارِ", font, 16, RIGHT_TO_LEFT, ARABIC, "ar");
-		textFields.push (new TextRender (textLayout, window.width, 80));
-		
-		var textLayout = new TextLayout ("The quick brown fox jumps over the lazy dog.", font, 16);
-		textFields.push (new TextRender (textLayout, 20, 20));
-		
-		var font = Assets.getFont ("assets/fireflysung.ttf");
-		var textLayout = new TextLayout ("懶惰的姜貓", font, 32, TOP_TO_BOTTOM, HAN, "zh");
-		textFields.push (new TextRender (textLayout, 50, 170));
-		
-		switch (context) {
+		switch (application.renderer.context) {
 			
 			case OPENGL (gl):
 				
@@ -106,18 +95,34 @@ class Main extends Application {
 			
 		}
 		
+	}
+	
+	
+	public override function onPreloadComplete ():Void {
+		
+		var font = Assets.getFont ("assets/amiri-regular.ttf");
+		var textLayout = new TextLayout ("صِف خَلقَ خَودِ كَمِثلِ الشَمسِ إِذ بَزَغَت — يَحظى الضَجيعُ بِها نَجلاءَ مِعطارِ", font, 16, RIGHT_TO_LEFT, ARABIC, "ar");
+		textFields.push (new TextRender (textLayout, window.width, 80));
+		
+		var textLayout = new TextLayout ("The quick brown fox jumps over the lazy dog.", font, 16);
+		textFields.push (new TextRender (textLayout, 20, 20));
+		
+		var font = Assets.getFont ("assets/fireflysung.ttf");
+		var textLayout = new TextLayout ("懶惰的姜貓", font, 32, TOP_TO_BOTTOM, HAN, "zh");
+		textFields.push (new TextRender (textLayout, 50, 170));
+		
 		for (textField in textFields) {
 			
-			textField.init (context);
+			textField.init (this);
 			
 		}
 		
 	}
 	
 	
-	public override function render (context:RenderContext):Void {
+	public override function render (renderer:Renderer):Void {
 		
-		switch (context) {
+		switch (renderer.context) {
 			
 			case OPENGL (gl):
 				
@@ -134,7 +139,7 @@ class Main extends Application {
 				
 				for (textField in textFields) {
 					
-					textField.render (context, vertexAttribute, textureAttribute);
+					textField.render (renderer, vertexAttribute, textureAttribute);
 					
 				}
 				
@@ -172,9 +177,9 @@ class TextRender {
 	}
 	
 	
-	public function init (context:RenderContext) {
+	public function init (application:Application) {
 		
-		switch (context) {
+		switch (application.renderer.context) {
 			
 			case OPENGL (gl):
 				
@@ -276,9 +281,9 @@ class TextRender {
 	}
 	
 	
-	public function render (context:RenderContext, vertexAttribute:Int, textureAttribute:Int) {
+	public function render (renderer:Renderer, vertexAttribute:Int, textureAttribute:Int) {
 		
-		switch (context) {
+		switch (renderer.context) {
 			
 			case OPENGL (gl):
 				

@@ -3,7 +3,7 @@ package;
 
 import lime.app.Application;
 import lime.audio.AudioSource;
-import lime.graphics.RenderContext;
+import lime.graphics.Renderer;
 import lime.Assets;
 
 
@@ -21,7 +21,18 @@ class Main extends Application {
 	}
 	
 	
-	public override function init (_):Void {
+	public override function onMouseDown (_, _, _, _):Void {
+		
+		if (sound != null) {
+			
+			sound.play ();
+			
+		}
+		
+	}
+	
+	
+	public override function onPreloadComplete ():Void {
 		
 		#if !flash
 		ambience = new AudioSource (Assets.getAudioBuffer ("assets/ambience.ogg"));
@@ -33,16 +44,14 @@ class Main extends Application {
 	}
 	
 	
-	public override function onMouseDown (_, _, _):Void {
+	public override function render (renderer:Renderer):Void {
 		
-		sound.play ();
-		
-	}
-	
-	
-	public override function render (context:RenderContext):Void {
-		
-		switch (context) {
+		switch (renderer.context) {
+			
+			case CAIRO (cairo):
+				
+				cairo.setSourceRGB (60 / 255, 184 / 255, 7 / 255);
+				cairo.paint ();
 			
 			case CANVAS (context):
 				

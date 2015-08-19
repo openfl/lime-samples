@@ -11,7 +11,7 @@
     <movie version="1" />
     <movie minorVersion="0" />
     <movie platform="Lime" />
-    <movie background="#FFFFFF" />
+    <movie background="FFFFFF" />
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
@@ -21,12 +21,12 @@
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="lime=2.3.3&#xA;tools=2.3.3&#xA;no-compilation&#xA;lime-html5&#xA;html5&#xA;web&#xA;html5&#xA;html" />
+    <option directives="lime=2.5.3&#xA;tools=2.5.3&#xA;no-compilation&#xA;lime-html5&#xA;html5&#xA;web&#xA;html5&#xA;html" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />
     <option enabledebug="False" />
-    <option additional="" />
+    <option additional="-debug " />
   </build>
   <!-- haxelib libraries -->
   <haxelib>

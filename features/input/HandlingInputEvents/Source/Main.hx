@@ -7,6 +7,7 @@ import lime.graphics.RenderContext;
 import lime.math.Vector2;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
+import lime.ui.Touch;
 import lime.ui.Window;
 import openfl.display.Sprite;
 import openfl.display.Stage;
@@ -54,7 +55,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onKeyDown (key:KeyCode, modifier:KeyModifier):Void {
+	public override function onKeyDown (window:Window, key:KeyCode, modifier:KeyModifier):Void {
 		
 		switch (key) {
 			
@@ -69,7 +70,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onKeyUp (key:KeyCode, modifier:KeyModifier):Void {
+	public override function onKeyUp (window:Window, key:KeyCode, modifier:KeyModifier):Void {
 		
 		switch (key) {
 			
@@ -117,26 +118,26 @@ class Main extends Application {
 	}
 	
 	
-	public override function onTouchEnd (window:Window, x:Float, y:Float, id:Int):Void {
+	public override function onTouchEnd (touch:Touch):Void {
 		
 		targetPoint = null;
 		
 	}
 	
 	
-	public override function onTouchMove (window:Window, x:Float, y:Float, button:Int):Void {
+	public override function onTouchMove (touch:Touch):Void {
 		
 		if (targetPoint != null) {
 			
-			targetPoint.x = x;
-			targetPoint.y = y;
+			targetPoint.x = touch.x * window.width;
+			targetPoint.y = touch.y * window.height;
 			
 		}
 		
 	}
 	
 	
-	public override function onTouchStart (window:Window, x:Float, y:Float, id:Int):Void {
+	public override function onTouchStart (touch:Touch):Void {
 		
 		if (targetPoint == null) {
 			
@@ -144,8 +145,8 @@ class Main extends Application {
 			
 		}
 		
-		targetPoint.x = x;
-		targetPoint.y = y;
+		targetPoint.x = touch.x * window.width;
+		targetPoint.y = touch.y * window.height;
 		
 	}
 	

@@ -126,10 +126,10 @@ class Main extends Application {
 			
 			case OPENGL (gl):
 				
-				var r = ((config.background >> 16) & 0xFF) / 0xFF;
-				var g = ((config.background >> 8) & 0xFF) / 0xFF;
-				var b = (config.background & 0xFF) / 0xFF;
-				var a = ((config.background >> 24) & 0xFF) / 0xFF;
+				var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;
+				var g = ((config.windows[0].background >> 8) & 0xFF) / 0xFF;
+				var b = (config.windows[0].background & 0xFF) / 0xFF;
+				var a = ((config.windows[0].background >> 24) & 0xFF) / 0xFF;
 				
 				gl.clearColor (r, g, b, a);
 				gl.clear (gl.COLOR_BUFFER_BIT);

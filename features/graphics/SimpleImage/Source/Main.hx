@@ -49,13 +49,13 @@ class Main extends Application {
 				
 				case CANVAS (context):
 					
-					context.fillStyle = "#" + StringTools.hex (config.background, 6);
+					context.fillStyle = "#" + StringTools.hex (config.windows[0].background, 6);
 					context.fillRect (0, 0, window.width, window.height);
 					context.drawImage (image.src, 0, 0, image.width, image.height);
 				
 				case DOM (element):
 					
-					element.style.backgroundColor = "#" + StringTools.hex (config.background, 6);
+					element.style.backgroundColor = "#" + StringTools.hex (config.windows[0].background, 6);
 					element.appendChild (image.src);
 				
 				case FLASH (sprite):
@@ -147,10 +147,10 @@ class Main extends Application {
 			
 			case CAIRO (cairo):
 				
-				var r = ((config.background >> 16) & 0xFF) / 0xFF;
-				var g = ((config.background >> 8) & 0xFF) / 0xFF;
-				var b = (config.background & 0xFF) / 0xFF;
-				var a = ((config.background >> 24) & 0xFF) / 0xFF;
+				var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;
+				var g = ((config.windows[0].background >> 8) & 0xFF) / 0xFF;
+				var b = (config.windows[0].background & 0xFF) / 0xFF;
+				var a = ((config.windows[0].background >> 24) & 0xFF) / 0xFF;
 				
 				cairo.setSourceRGB (r, g, b);
 				cairo.paint ();
@@ -165,10 +165,10 @@ class Main extends Application {
 				
 				gl.viewport (0, 0, window.width, window.height);
 				
-				var r = ((config.background >> 16) & 0xFF) / 0xFF;
-				var g = ((config.background >> 8) & 0xFF) / 0xFF;
-				var b = (config.background & 0xFF) / 0xFF;
-				var a = ((config.background >> 24) & 0xFF) / 0xFF;
+				var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;
+				var g = ((config.windows[0].background >> 8) & 0xFF) / 0xFF;
+				var b = (config.windows[0].background & 0xFF) / 0xFF;
+				var a = ((config.windows[0].background >> 24) & 0xFF) / 0xFF;
 				
 				gl.clearColor (r, g, b, a);
 				gl.clear (gl.COLOR_BUFFER_BIT);

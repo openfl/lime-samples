@@ -9,6 +9,7 @@ import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLShader;
 import lime.graphics.opengl.GLUniformLocation;
 import lime.graphics.Renderer;
+import lime.ui.Window;
 import lime.utils.Float32Array;
 import lime.Assets;
 
@@ -119,9 +120,9 @@ class Main extends Application {
 	}
 	
 	
-	public override function init (application:Application):Void {
+	public override function onWindowCreate (window:Window):Void {
 		
-		switch (application.renderer.context) {
+		switch (window.renderer.context) {
 			
 			case OPENGL (gl):
 				

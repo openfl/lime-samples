@@ -11,6 +11,7 @@ import lime.graphics.Renderer;
 import lime.math.Matrix4;
 import lime.text.Font;
 import lime.text.TextLayout;
+import lime.ui.Window;
 import lime.utils.Float32Array;
 import lime.utils.GLUtils;
 import lime.utils.UInt8Array;
@@ -35,9 +36,31 @@ class Main extends Application {
 	}
 	
 	
-	public override function init (application:Application):Void {
+	public override function onPreloadComplete ():Void {
 		
-		switch (application.renderer.context) {
+		var font = Assets.getFont ("assets/amiri-regular.ttf");
+		var textLayout = new TextLayout ("صِف خَلقَ خَودِ كَمِثلِ الشَمسِ إِذ بَزَغَت — يَحظى الضَجيعُ بِها نَجلاءَ مِعطارِ", font, 16, RIGHT_TO_LEFT, ARABIC, "ar");
+		textFields.push (new TextRender (textLayout, window.width, 80));
+		
+		var textLayout = new TextLayout ("The quick brown fox jumps over the lazy dog.", font, 16);
+		textFields.push (new TextRender (textLayout, 20, 20));
+		
+		var font = Assets.getFont ("assets/fireflysung.ttf");
+		var textLayout = new TextLayout ("懶惰的姜貓", font, 32, TOP_TO_BOTTOM, HAN, "zh");
+		textFields.push (new TextRender (textLayout, 50, 170));
+		
+		for (textField in textFields) {
+			
+			textField.init (this);
+			
+		}
+		
+	}
+	
+	
+	public override function onWindowCreate (window:Window):Void {
+		
+		switch (window.renderer.context) {
 			
 			case OPENGL (gl):
 				
@@ -92,28 +115,6 @@ class Main extends Application {
 				
 			default:
 				
-			
-		}
-		
-	}
-	
-	
-	public override function onPreloadComplete ():Void {
-		
-		var font = Assets.getFont ("assets/amiri-regular.ttf");
-		var textLayout = new TextLayout ("صِف خَلقَ خَودِ كَمِثلِ الشَمسِ إِذ بَزَغَت — يَحظى الضَجيعُ بِها نَجلاءَ مِعطارِ", font, 16, RIGHT_TO_LEFT, ARABIC, "ar");
-		textFields.push (new TextRender (textLayout, window.width, 80));
-		
-		var textLayout = new TextLayout ("The quick brown fox jumps over the lazy dog.", font, 16);
-		textFields.push (new TextRender (textLayout, 20, 20));
-		
-		var font = Assets.getFont ("assets/fireflysung.ttf");
-		var textLayout = new TextLayout ("懶惰的姜貓", font, 32, TOP_TO_BOTTOM, HAN, "zh");
-		textFields.push (new TextRender (textLayout, 50, 170));
-		
-		for (textField in textFields) {
-			
-			textField.init (this);
 			
 		}
 		

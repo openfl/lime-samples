@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="GameOfLife" package="org.openfl.lime.demos.gameoflife" version="1.0.0" company="OpenFL" />
+	<app main="Main" path="Export" file="GameOfLife" />
+	
+	<window background="#000000" width="1200" height="800" />
+	
+	<source path="Source" />
+	
+	<haxelib name="lime" />
+	<!-- <haxedef name="canvas" /> -->
+	<!-- <haxedef name="dom" /> -->
+	
+	<haxeflag name="-dce" value="full" if="html5" />
+	
+	<assets path="Assets" rename="assets" exclude="*.svg" />
+	<icon path="Assets/lime.svg" />
+	
+</project>

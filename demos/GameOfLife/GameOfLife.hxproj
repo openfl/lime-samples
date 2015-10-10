@@ -16,9 +16,6 @@
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
-    <class path="D:\Programme\coding\haxe\haxe\lib\lime\2,6,8" />
-    <class path="Source" />
-    <class path="Export\html5\haxe" />
   </classpaths>
   <!-- Build options -->
   <build>

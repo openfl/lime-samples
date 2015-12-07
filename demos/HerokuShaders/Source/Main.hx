@@ -118,6 +118,15 @@ class Main extends Application {
 		return shader;
 		
 	}
+
+
+	public override function onPreloadComplete ()
+	{
+		// http://community.openfl.org/t/lime-assets-load-fail/6644
+		// In short, HTML5 isn't able to load assets in onWindowCreate, so
+		// do it in onPreloadComplete instead.
+		compile ();
+	}
 	
 	
 	public override function onWindowCreate (window:Window):Void {
@@ -133,8 +142,6 @@ class Main extends Application {
 				gl.bindBuffer (gl.ARRAY_BUFFER, buffer);
 				gl.bufferData (gl.ARRAY_BUFFER, new Float32Array ([ -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0 ]), gl.STATIC_DRAW);
 				gl.bindBuffer (gl.ARRAY_BUFFER, null);
-				
-				compile ();
 				
 			default:
 				

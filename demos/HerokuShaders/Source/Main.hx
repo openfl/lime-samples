@@ -111,6 +111,7 @@ class Main extends Application {
 		if (GL.getShaderParameter (shader, GL.COMPILE_STATUS) == 0) {
 			
 			trace (GL.getShaderInfoLog (shader));
+			trace (source);
 			return null;
 			
 		}

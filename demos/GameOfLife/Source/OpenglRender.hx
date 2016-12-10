@@ -12,6 +12,11 @@ import lime.math.Matrix4;
 import lime.utils.Float32Array;
 import lime.utils.GLUtils;
 
+import lime.graphics.GLRenderContext;
+#if flash
+typedef GLRenderContext = Dynamic;
+#end
+
 class OpenglRender
 {
 
@@ -27,7 +32,7 @@ class OpenglRender
 	private static var b:Float;
 	private static var a:Float;
 
-	public static function init(gl:Dynamic, background:Int, image:Image, scale:Float):Void {
+	public static function init(gl:GLRenderContext, background:Int, image:Image, scale:Float):Void {
 
 		r = ((background >> 16) & 0xFF) / 0xFF;
 		g = ((background >> 8) & 0xFF) / 0xFF;
@@ -49,7 +54,7 @@ class OpenglRender
 			}";
 		
 		var fragmentSource = 
-			#if !desktop
+			#if (!desktop || rpi)
 			"precision mediump float;" +
 			#end
 			"varying vec2 vTexCoord;
@@ -97,14 +102,14 @@ class OpenglRender
 	}
 
 
-	public static function changeTextureData(gl:Dynamic, image:Image):Void 
+	public static function changeTextureData(gl:GLRenderContext, image:Image):Void 
 	{
 		gl.bindTexture(gl.TEXTURE_2D, texture);
 		gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, image.buffer.width, image.buffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image.data);
 	}
 	
 	
-	public static function render(gl:Dynamic, width:Int, height:Int):Void {
+	public static function render(gl:GLRenderContext, width:Int, height:Int):Void {
 
 		gl.viewport (0, 0, width, height);
 		

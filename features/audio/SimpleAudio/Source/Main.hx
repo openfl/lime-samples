@@ -2,8 +2,8 @@ package;
 
 
 import lime.app.Application;
-import lime.audio.AudioSource;
 import lime.graphics.Renderer;
+import lime.media.AudioSource;
 import lime.Assets;
 
 

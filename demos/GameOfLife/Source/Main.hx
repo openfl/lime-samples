@@ -102,7 +102,13 @@ class Main extends Application {
 			swap = ! swap;
 			
 			switch (renderer.context) {
-				case CANVAS (context):					
+				case CANVAS (context):
+					context.imageSmoothingEnabled = false; // disable antialiasing 
+					untyped context.mozImageSmoothingEnabled = false; // firefox hack
+					untyped context.oImageSmoothingEnabled = false; // opera hack
+					untyped context.webkitImageSmoothingEnabled = false; // safari hack
+					untyped context.msImageSmoothingEnabled = false; // ie hack
+					
 					if (swap) {
 						ImageCanvasUtil.sync (src_image, true);
 						context.drawImage (src_image.src , 0, 0, src_image.width  * scale, src_image.height  * scale);

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
 	
-	<meta title="GameOfLife" package="org.openfl.lime.demos.gameoflife" version="1.0.0" company="OpenFL" />
+	<meta title="GameOfLife" package="org.openfl.lime.demos.gameoflife" version="1.0.1" company="OpenFL" />
 	<app main="Main" path="Export" file="GameOfLife" />
 	
 	<window background="#000000" width="1200" height="800" />
@@ -9,10 +9,13 @@
 	<source path="Source" />
 	
 	<haxelib name="lime" />
+	
+	<!-- default rendercontext for html5 is webgl, uncomment to change this: -->
 	<!-- <haxedef name="canvas" /> -->
 	<!-- <haxedef name="dom" /> -->
 	
-	<haxeflag name="-dce" value="full" if="html5" />
+	<!-- dead code elimination to reduce output filesize -->
+	<haxeflag name="-dce" value="full" />
 	
 	<assets path="Assets" rename="assets" exclude="*.svg" />
 	<icon path="Assets/lime.svg" />

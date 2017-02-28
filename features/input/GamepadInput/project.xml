@@ -6,8 +6,8 @@
 	
 	<source path="Source" />
 	
-	<haxelib name="lime" />
 	<haxelib name="openfl" />
+	<haxelib name="lime" />
 	
 	<assets path="Assets" rename="assets" />
 	

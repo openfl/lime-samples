@@ -8,6 +8,7 @@ import lime.graphics.opengl.GLTexture;
 import lime.graphics.opengl.GLUniformLocation;
 import lime.graphics.Image;
 import lime.graphics.Renderer;
+import lime.graphics.opengl.WebGLContext;
 import lime.math.Matrix4;
 import lime.text.Font;
 import lime.text.TextLayout;
@@ -184,6 +185,7 @@ class TextRender {
 			
 			case OPENGL (gl):
 				
+				var gl:WebGLContext = gl;
 				var vertices = new Array<Float> ();
 				var indices = new Array<Int> ();
 				var left, top, right, bottom;

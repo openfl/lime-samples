@@ -67,6 +67,8 @@ class Main extends Application {
 				
 				case OPENGL (gl):
 					
+					var gl:WebGLContext = gl;
+					
 					var vertexSource = 
 						
 						"attribute vec4 aPosition;

@@ -175,21 +175,25 @@ class Main extends Application {
 				gl.clearColor (r, g, b, a);
 				gl.clear (gl.COLOR_BUFFER_BIT);
 				
-				var matrix = Matrix4.createOrtho (0, window.width, window.height, 0, -1000, 1000);
-				gl.uniformMatrix4fv (glMatrixUniform, false, matrix);
-				
-				gl.activeTexture (gl.TEXTURE0);
-				gl.bindTexture (gl.TEXTURE_2D, glTexture);
-				
-				#if desktop
-				gl.enable (gl.TEXTURE_2D);
-				#end
-				
-				gl.bindBuffer (gl.ARRAY_BUFFER, glBuffer);
-				gl.vertexAttribPointer (glVertexAttribute, 3, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 0);
-				gl.vertexAttribPointer (glTextureAttribute, 2, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 3 * Float32Array.BYTES_PER_ELEMENT);
-				
-				gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
+				if (image != null) {
+					
+					var matrix = Matrix4.createOrtho (0, window.width, window.height, 0, -1000, 1000);
+					gl.uniformMatrix4fv (glMatrixUniform, false, matrix);
+					
+					gl.activeTexture (gl.TEXTURE0);
+					gl.bindTexture (gl.TEXTURE_2D, glTexture);
+					
+					#if desktop
+					gl.enable (gl.TEXTURE_2D);
+					#end
+					
+					gl.bindBuffer (gl.ARRAY_BUFFER, glBuffer);
+					gl.vertexAttribPointer (glVertexAttribute, 3, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 0);
+					gl.vertexAttribPointer (glTextureAttribute, 2, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 3 * Float32Array.BYTES_PER_ELEMENT);
+					
+					gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
+					
+				}
 				
 			default:
 			

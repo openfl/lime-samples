@@ -34,7 +34,7 @@ class Main extends Application {
 		
 		super.create (config);
 		
-		stage = new Stage (window.width, window.height, 0xFFFFFF);
+		stage = new Stage (window, 0xFFFFFF);
 		square = new Sprite ();
 		
 		var fill = new Sprite ();

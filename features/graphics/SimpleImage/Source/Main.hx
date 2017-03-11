@@ -165,6 +165,8 @@ class Main extends Application {
 			
 			case OPENGL (gl):
 				
+				var gl:WebGLContext = gl;
+				
 				gl.viewport (0, 0, window.width, window.height);
 				
 				var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;

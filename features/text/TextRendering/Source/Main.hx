@@ -137,7 +137,7 @@ class Main extends Application {
 				gl.clear (gl.COLOR_BUFFER_BIT);
 				
 				var matrix = Matrix4.createOrtho (0, window.width, window.height, 0, -10, 10);
-				gl.uniformMatrix4fv (matrixUniform, false, matrix);
+				gl.uniformMatrix4fv (matrixUniform, 1, false, matrix);
 				
 				for (textField in textFields) {
 					

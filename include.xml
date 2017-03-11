@@ -2,7 +2,7 @@
 <extension>
 	
 	<sample path="demos" />
-	<sample path="features/audio" />
+	<sample path="features/media" />
 	<sample path="features/graphics" />
 	<sample path="features/input" />
 	<sample path="features/text" />

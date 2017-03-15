@@ -4,8 +4,8 @@
   "license": "MIT",
   "tags": [ ],
   "description": "Lime samples",
-  "version": "3.4.0",
-  "releasenote": "Minor updates",
+  "version": "4.0.0",
+  "releasenote": "Update for Lime 4",
   "contributors": [ "singmajesty" ],
   "dependencies": {}
 }

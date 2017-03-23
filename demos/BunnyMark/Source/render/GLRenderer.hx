@@ -1,11 +1,11 @@
 package render;
 
 
-import lime.graphics.GLRenderContext;
 import lime.graphics.Image;
 import lime.graphics.opengl.GLBuffer;
 import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLTexture;
+import lime.graphics.opengl.WebGLContext;
 import lime.math.Matrix4;
 import lime.utils.Float32Array;
 import lime.utils.GLUtils;
@@ -16,7 +16,7 @@ class GLRenderer {
 	
 	private var buffer:GLBuffer;
 	private var bufferData:Float32Array;
-	private var gl:GLRenderContext;
+	private var gl:WebGLContext;
 	private var height:Int;
 	private var image:Image;
 	private var numBunnies:Int;
@@ -27,7 +27,7 @@ class GLRenderer {
 	private var width:Int;
 	
 	
-	public function new (gl:GLRenderContext, image:Image, width:Int, height:Int) {
+	public function new (gl:WebGLContext, image:Image, width:Int, height:Int) {
 		
 		this.gl = gl;
 		this.image = image;

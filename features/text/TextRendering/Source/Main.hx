@@ -208,7 +208,7 @@ class TextRender {
 				
 				for (position in textLayout.positions) {
 					
-					if (images.exists (position.glyph)) {
+					if (position.glyph != 0 && images.exists (position.glyph)) {
 						
 						var image = images.get (position.glyph);
 						
@@ -269,13 +269,13 @@ class TextRender {
 				gl.bindBuffer (gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 				gl.bufferData (gl.ELEMENT_ARRAY_BUFFER, new UInt8Array (indices), gl.STATIC_DRAW);
 				
-				var format = (buffer.bitsPerPixel == 1 ? gl.ALPHA : gl.RGBA);
+				var format = (buffer.bitsPerPixel == 8 ? gl.ALPHA : gl.RGBA);
 				texture = gl.createTexture ();
 				gl.bindTexture (gl.TEXTURE_2D, texture);
 				gl.texImage2D (gl.TEXTURE_2D, 0, format, buffer.width, buffer.height, 0, format, gl.UNSIGNED_BYTE, buffer.data);
 				gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 				gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-				
+			
 			default:
 				
 			
@@ -299,7 +299,7 @@ class TextRender {
 				
 				gl.bindBuffer (gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 				gl.drawElements (gl.TRIANGLES, numTriangles, gl.UNSIGNED_BYTE, 0);
-				
+			
 			default:
 				
 			

@@ -2,32 +2,40 @@ package;
 
 
 import lime.app.Application;
+import lime.graphics.cairo.Cairo;
+import lime.graphics.cairo.CairoAntialias;
+import lime.graphics.cairo.CairoFontFace;
+import lime.graphics.cairo.CairoFontOptions;
+import lime.graphics.cairo.CairoFTFontFace;
+import lime.graphics.cairo.CairoGlyph;
+import lime.graphics.cairo.CairoHintMetrics;
+import lime.graphics.cairo.CairoHintStyle;
 import lime.graphics.opengl.GLBuffer;
 import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLTexture;
 import lime.graphics.opengl.GLUniformLocation;
+import lime.graphics.opengl.WebGLContext;
 import lime.graphics.Image;
 import lime.graphics.Renderer;
-import lime.graphics.opengl.WebGLContext;
 import lime.math.Matrix4;
 import lime.text.Font;
 import lime.text.TextLayout;
 import lime.ui.Window;
+import lime.utils.Assets;
 import lime.utils.Float32Array;
 import lime.utils.GLUtils;
 import lime.utils.UInt8Array;
-import lime.Assets;
 
 
 class Main extends Application {
 	
 	
-	private var imageUniform:GLUniformLocation;
-	private var matrixUniform:GLUniformLocation;
-	private var program:GLProgram;
+	private var glImageUniform:GLUniformLocation;
+	private var glMatrixUniform:GLUniformLocation;
+	private var glProgram:GLProgram;
+	private var glTextureAttribute:Int;
+	private var glVertexAttribute:Int;
 	private var textFields = new Array<TextRender> ();
-	private var textureAttribute:Int;
-	private var vertexAttribute:Int;
 	
 	
 	public function new () {
@@ -93,17 +101,17 @@ class Main extends Application {
 						gl_FragColor = vec4 (0, 0, 0, texture2D (uImage0, vTexCoord).a);
 					}";
 				
-				program = GLUtils.createProgram (vertexSource, fragmentSource);
-				gl.useProgram (program);
+				glProgram = GLUtils.createProgram (vertexSource, fragmentSource);
+				gl.useProgram (glProgram);
 				
-				vertexAttribute = gl.getAttribLocation (program, "aPosition");
-				textureAttribute = gl.getAttribLocation (program, "aTexCoord");
-				matrixUniform = gl.getUniformLocation (program, "uMatrix");
-				imageUniform = gl.getUniformLocation (program, "uImage0");
+				glVertexAttribute = gl.getAttribLocation (glProgram, "aPosition");
+				glTextureAttribute = gl.getAttribLocation (glProgram, "aTexCoord");
+				glMatrixUniform = gl.getUniformLocation (glProgram, "uMatrix");
+				glImageUniform = gl.getUniformLocation (glProgram, "uImage0");
 				
-				gl.enableVertexAttribArray (vertexAttribute);
-				gl.enableVertexAttribArray (textureAttribute);
-				gl.uniform1i (imageUniform, 0);
+				gl.enableVertexAttribArray (glVertexAttribute);
+				gl.enableVertexAttribArray (glTextureAttribute);
+				gl.uniform1i (glImageUniform, 0);
 				
 				#if desktop
 				gl.enable (gl.TEXTURE_2D);
@@ -137,17 +145,35 @@ class Main extends Application {
 				gl.clear (gl.COLOR_BUFFER_BIT);
 				
 				var matrix = Matrix4.createOrtho (0, window.width, window.height, 0, -10, 10);
-				gl.uniformMatrix4fv (matrixUniform, 1, false, matrix);
+				gl.uniformMatrix4fv (glMatrixUniform, 1, false, matrix);
 				
 				for (textField in textFields) {
 					
-					textField.render (renderer, vertexAttribute, textureAttribute);
+					textField.render (renderer, glVertexAttribute, glTextureAttribute);
 					
 				}
+			
+			case CAIRO (cairo):
 				
+				var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;
+				var g = ((config.windows[0].background >> 8) & 0xFF) / 0xFF;
+				var b = (config.windows[0].background & 0xFF) / 0xFF;
+				
+				cairo.setSourceRGB (r, g, b);
+				cairo.paint ();
+				
+				for (textField in textFields) {
+					
+					textField.render (renderer);
+					
+				}
+			
 			default:
 				
+			
 		}
+		
+		
 		
 	}
 	
@@ -158,12 +184,15 @@ class Main extends Application {
 class TextRender {
 	
 	
-	private var vertexBuffer:GLBuffer;
+	private var cairoFontFace:CairoFontFace;
+	private var cairoFontOptions:CairoFontOptions;
+	private var cairoGlyphs:Array<CairoGlyph>;
+	private var glIndexBuffer:GLBuffer;
+	private var glNumTriangles:Int;
+	private var glTexture:GLTexture;
+	private var glVertexBuffer:GLBuffer;
 	private var images:Map<Int, Image>;
-	private var indexBuffer:GLBuffer;
-	private var numTriangles:Int;
 	private var textLayout:TextLayout;
-	private var texture:GLTexture;
 	private var x:Float;
 	private var y:Float;
 	
@@ -181,6 +210,20 @@ class TextRender {
 	
 	public function init (application:Application) {
 		
+		if (textLayout.direction == RIGHT_TO_LEFT) {
+			
+			var width = 0.0;
+			
+			for (position in textLayout.positions) {
+				
+				width += position.advance.x;
+				
+			}
+			
+			x -= width;
+			
+		}
+		
 		switch (application.renderer.context) {
 			
 			case OPENGL (gl):
@@ -189,20 +232,6 @@ class TextRender {
 				var vertices = new Array<Float> ();
 				var indices = new Array<Int> ();
 				var left, top, right, bottom;
-				
-				if (textLayout.direction == RIGHT_TO_LEFT) {
-					
-					var width = 0.0;
-					
-					for (position in textLayout.positions) {
-						
-						width += position.advance.x;
-						
-					}
-					
-					x -= width;
-					
-				}
 				
 				var buffer = null;
 				
@@ -259,22 +288,44 @@ class TextRender {
 					
 				}
 				
-				numTriangles = indices.length;
+				glNumTriangles = indices.length;
 				
-				vertexBuffer = gl.createBuffer ();
-				gl.bindBuffer (gl.ARRAY_BUFFER, vertexBuffer);
+				glVertexBuffer = gl.createBuffer ();
+				gl.bindBuffer (gl.ARRAY_BUFFER, glVertexBuffer);
 				gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (vertices), gl.STATIC_DRAW);
 				
-				indexBuffer = gl.createBuffer ();
-				gl.bindBuffer (gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+				glIndexBuffer = gl.createBuffer ();
+				gl.bindBuffer (gl.ELEMENT_ARRAY_BUFFER, glIndexBuffer);
 				gl.bufferData (gl.ELEMENT_ARRAY_BUFFER, new UInt8Array (indices), gl.STATIC_DRAW);
 				
 				var format = (buffer.bitsPerPixel == 8 ? gl.ALPHA : gl.RGBA);
-				texture = gl.createTexture ();
-				gl.bindTexture (gl.TEXTURE_2D, texture);
+				glTexture = gl.createTexture ();
+				gl.bindTexture (gl.TEXTURE_2D, glTexture);
 				gl.texImage2D (gl.TEXTURE_2D, 0, format, buffer.width, buffer.height, 0, format, gl.UNSIGNED_BYTE, buffer.data);
 				gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 				gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			
+			case CAIRO (cairo):
+				
+				cairoGlyphs = [];
+				
+				for (position in textLayout.positions) {
+					
+					if (position == null || position.glyph == 0) continue;
+					
+					cairoGlyphs.push (new CairoGlyph (position.glyph, x + position.offset.x + 0.5, y + position.offset.y + 0.5));
+					
+					x += position.advance.x;
+					y -= position.advance.y;
+					
+				}
+				
+				cairoFontOptions = new CairoFontOptions ();
+				cairoFontOptions.hintStyle = CairoHintStyle.SLIGHT;
+				cairoFontOptions.hintMetrics = CairoHintMetrics.OFF;
+				cairoFontOptions.antialias = CairoAntialias.GOOD;
+				
+				cairoFontFace = CairoFTFontFace.create (textLayout.font, 0);
 			
 			default:
 				
@@ -284,21 +335,32 @@ class TextRender {
 	}
 	
 	
-	public function render (renderer:Renderer, vertexAttribute:Int, textureAttribute:Int) {
+	public function render (renderer:Renderer, ?glVertexAttribute:Int, ?glTextureAttribute:Int) {
 		
 		switch (renderer.context) {
 			
 			case OPENGL (gl):
 				
 				gl.activeTexture (gl.TEXTURE0);
-				gl.bindTexture (gl.TEXTURE_2D, texture);
+				gl.bindTexture (gl.TEXTURE_2D, glTexture);
 				
-				gl.bindBuffer (gl.ARRAY_BUFFER, vertexBuffer);
-				gl.vertexAttribPointer (vertexAttribute, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
-				gl.vertexAttribPointer (textureAttribute, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
+				gl.bindBuffer (gl.ARRAY_BUFFER, glVertexBuffer);
+				gl.vertexAttribPointer (glVertexAttribute, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
+				gl.vertexAttribPointer (glTextureAttribute, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
 				
-				gl.bindBuffer (gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-				gl.drawElements (gl.TRIANGLES, numTriangles, gl.UNSIGNED_BYTE, 0);
+				gl.bindBuffer (gl.ELEMENT_ARRAY_BUFFER, glIndexBuffer);
+				gl.drawElements (gl.TRIANGLES, glNumTriangles, gl.UNSIGNED_BYTE, 0);
+			
+			case CAIRO (cairo):
+				
+				cairo.translate (0, 0);
+				cairo.setSourceRGB (0, 0, 0);
+				
+				cairo.setFontSize (textLayout.size);
+				cairo.fontOptions = cairoFontOptions;
+				cairo.fontFace = cairoFontFace;
+				
+				cairo.showGlyphs (cairoGlyphs);
 			
 			default:
 				

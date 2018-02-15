@@ -191,7 +191,6 @@ class TextRender {
 	private var glNumTriangles:Int;
 	private var glTexture:GLTexture;
 	private var glVertexBuffer:GLBuffer;
-	private var images:Map<Int, Image>;
 	private var textLayout:TextLayout;
 	private var x:Float;
 	private var y:Float;
@@ -202,8 +201,6 @@ class TextRender {
 		this.textLayout = textLayout;
 		this.x = x;
 		this.y = y;
-		
-		images = textLayout.font.renderGlyphs (textLayout.glyphs, textLayout.size);
 		
 	}
 	
@@ -234,6 +231,8 @@ class TextRender {
 				var left, top, right, bottom;
 				
 				var buffer = null;
+				
+				var images = textLayout.font.renderGlyphs (textLayout.glyphs, textLayout.size);
 				
 				for (position in textLayout.positions) {
 					

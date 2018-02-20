@@ -157,11 +157,15 @@ class Main extends Application {
 				cairo.setSourceRGB (r, g, b);
 				cairo.paint ();
 				
-				image.format = BGRA32;
-				image.premultiplied = true;
-				
-				cairo.setSourceSurface (cairoSurface, 0, 0);
-				cairo.paint ();
+				if (image != null) {
+					
+					image.format = BGRA32;
+					image.premultiplied = true;
+					
+					cairo.setSourceSurface (cairoSurface, 0, 0);
+					cairo.paint ();
+					
+				}
 			
 			case OPENGL (gl):
 				

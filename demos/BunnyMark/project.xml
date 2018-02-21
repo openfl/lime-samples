@@ -8,8 +8,8 @@
 	
 	<source path="Source" />
 	
-	<set name="webgl" if="html5" />
-	<haxedef name="webgl" if="html5" />
+	<define name="webgl" if="html5" />
+	<define name="stats" if="html5" />
 	
 	<haxelib name="lime" />
 	

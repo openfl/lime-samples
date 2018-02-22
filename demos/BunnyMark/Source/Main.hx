@@ -66,6 +66,8 @@ class Main extends Application {
 		
 		addingBunnies = false;
 		
+		trace ('${bunnies.length} bunnies @ ${fps.current} FPS');
+		
 	}
 	
 	
@@ -91,7 +93,9 @@ class Main extends Application {
 			
 		}
 		
-		for (i in 0...30) {
+		var count = #if bunnies Std.parseInt (haxe.macro.Compiler.getDefine ("bunnies")) #else 100 #end;
+		
+		for (i in 0...count) {
 			
 			addBunny ();
 			

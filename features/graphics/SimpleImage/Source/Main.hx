@@ -2,20 +2,27 @@ package;
 
 
 import lime.app.Application;
-import lime.graphics.cairo.*;
-import lime.graphics.opengl.*;
+import lime.graphics.cairo.CairoImageSurface;
+import lime.graphics.opengl.GLBuffer;
+import lime.graphics.opengl.GLProgram;
+import lime.graphics.opengl.GLTexture;
+import lime.graphics.opengl.GLUniformLocation;
 import lime.graphics.Image;
-import lime.graphics.Renderer;
 import lime.math.Matrix4;
+import lime.ui.Window;
+import lime.utils.Assets;
 import lime.utils.Float32Array;
 import lime.utils.GLUtils;
-import lime.Assets;
+
+#if flash
+import flash.display.Bitmap;
+#end
 
 
 class Main extends Application {
 	
 	
-	private var cairoSurface:CairoSurface;
+	private var cairoSurface:CairoImageSurface;
 	private var glBuffer:GLBuffer;
 	private var glMatrixUniform:GLUniformLocation;
 	private var glProgram:GLProgram;
@@ -32,42 +39,91 @@ class Main extends Application {
 	}
 	
 	
-	public override function render (renderer:Renderer):Void {
+	public override function render (window:Window):Void {
 		
-		if (image == null && preloader.complete) {
+		switch (window.context.type) {
 			
-			image = Assets.getImage ("assets/lime.png");
-			
-			switch (renderer.context) {
+			case CAIRO:
 				
-				case CAIRO (cairo):
+				var cairo = window.context.cairo;
+				
+				if (image == null && preloader.complete) {
 					
+					image = Assets.getImage ("assets/lime.png");
 					image.format = BGRA32;
 					image.premultiplied = true;
 					
 					cairoSurface = CairoImageSurface.fromImage (image);
-				
-				case CANVAS (context):
 					
-					context.fillStyle = "#" + StringTools.hex (config.windows[0].background, 6);
-					context.fillRect (0, 0, window.width, window.height);
-					context.drawImage (image.src, 0, 0, image.width, image.height);
+				}
 				
-				case DOM (element):
+				var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;
+				var g = ((config.windows[0].background >> 8) & 0xFF) / 0xFF;
+				var b = (config.windows[0].background & 0xFF) / 0xFF;
+				var a = ((config.windows[0].background >> 24) & 0xFF) / 0xFF;
+				
+				cairo.setSourceRGB (r, g, b);
+				cairo.paint ();
+				
+				if (image != null) {
+					
+					image.format = BGRA32;
+					image.premultiplied = true;
+					
+					cairo.setSourceSurface (cairoSurface, 0, 0);
+					cairo.paint ();
+					
+				}
+			
+			case CANVAS:
+				
+				var ctx = window.context.ctx;
+				
+				if (image == null && preloader.complete) {
+					
+					image = Assets.getImage ("assets/lime.png");
+					
+					ctx.fillStyle = "#" + StringTools.hex (config.windows[0].background, 6);
+					ctx.fillRect (0, 0, window.width, window.height);
+					ctx.drawImage (image.src, 0, 0, image.width, image.height);
+					
+				}
+			
+			case DOM:
+				
+				var element = window.context.element;
+				
+				if (image == null && preloader.complete) {
+					
+					image = Assets.getImage ("assets/lime.png");
 					
 					element.style.backgroundColor = "#" + StringTools.hex (config.windows[0].background, 6);
 					element.appendChild (image.src);
+					
+				}
+			
+			case FLASH:
 				
-				case FLASH (sprite):
+				var sprite = window.context.sprite;
+				
+				if (image == null && preloader.complete) {
+					
+					image = Assets.getImage ("assets/lime.png");
 					
 					#if flash
-					var bitmap = new flash.display.Bitmap (image.src);
+					var bitmap = new Bitmap (image.src);
 					sprite.addChild (bitmap);
 					#end
-				
-				case OPENGL (gl):
 					
-					var gl:WebGLContext = gl;
+				}
+			
+			case OPENGL, OPENGLES, WEBGL:
+				
+				var gl = window.context.webgl;
+				
+				if (image == null && preloader.complete) {
+					
+					image = Assets.getImage ("assets/lime.png");
 					
 					var vertexSource = 
 						
@@ -130,46 +186,18 @@ class Main extends Application {
 					gl.bindTexture (gl.TEXTURE_2D, glTexture);
 					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+					
 					#if js
 					gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image.src);
 					#else
 					gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, image.buffer.width, image.buffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image.data);
 					#end
+					
 					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 					gl.bindTexture (gl.TEXTURE_2D, null);
-				
-				default:
-				
-			}
-			
-		}
-		
-		switch (renderer.context) {
-			
-			case CAIRO (cairo):
-				
-				var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;
-				var g = ((config.windows[0].background >> 8) & 0xFF) / 0xFF;
-				var b = (config.windows[0].background & 0xFF) / 0xFF;
-				var a = ((config.windows[0].background >> 24) & 0xFF) / 0xFF;
-				
-				cairo.setSourceRGB (r, g, b);
-				cairo.paint ();
-				
-				if (image != null) {
-					
-					image.format = BGRA32;
-					image.premultiplied = true;
-					
-					cairo.setSourceSurface (cairoSurface, 0, 0);
-					cairo.paint ();
 					
 				}
-			
-			case OPENGL (gl):
-				
-				var gl:WebGLContext = gl;
 				
 				gl.viewport (0, 0, window.width, window.height);
 				
@@ -200,7 +228,7 @@ class Main extends Application {
 					gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
 					
 				}
-				
+			
 			default:
 			
 		}

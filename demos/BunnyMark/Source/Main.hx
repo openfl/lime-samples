@@ -3,8 +3,10 @@ package;
 
 import lime.app.Application;
 import lime.graphics.Image;
-import lime.Assets;
+import lime.graphics.RenderContext;
 import lime.ui.KeyCode;
+import lime.ui.KeyModifier;
+import lime.utils.Assets;
 import render.GLRenderer;
 
 
@@ -44,7 +46,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onKeyDown (_, key:KeyCode, _):Void {
+	public override function onKeyDown (key:KeyCode, modifier:KeyModifier):Void {
 		
 		if (key == KeyCode.SPACE) {
 			
@@ -55,14 +57,14 @@ class Main extends Application {
 	}
 	
 	
-	public override function onMouseDown (_, _, _, _):Void {
+	public override function onMouseDown (x:Float, y:Float, button:Int):Void {
 		
 		addingBunnies = true;
 		
 	}
 	
 	
-	public override function onMouseUp (_, _, _, _):Void {
+	public override function onMouseUp (x:Float, y:Float, button:Int):Void {
 		
 		addingBunnies = false;
 		
@@ -81,11 +83,11 @@ class Main extends Application {
 		
 		var image = Assets.getImage ("assets/wabbit_alpha.png");
 		
-		switch (renderer.context) {
+		switch (window.context.type) {
 			
-			case OPENGL (gl):
+			case OPENGL, OPENGLES, WEBGL:
 				
-				glRenderer = new GLRenderer (gl, image, window.width, window.height);
+				glRenderer = new GLRenderer (window.context.webgl, image, window.width, window.height);
 			
 			default:
 				
@@ -104,7 +106,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function render (_):Void {
+	public override function render (context:RenderContext):Void {
 		
 		if (!preloader.complete) return;
 		

@@ -57,7 +57,7 @@ class Main extends Application {
 			
 			case CANVAS:
 				
-				var ctx = context.ctx;
+				var ctx = context.canvas2D;
 				
 				ctx.fillStyle = "#3CB878";
 				ctx.fillRect (0, 0, window.width, window.height);

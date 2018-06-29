@@ -77,7 +77,7 @@ class Main extends Application {
 			
 			case CANVAS:
 				
-				var ctx = context.ctx;
+				var ctx = context.canvas2D;
 				
 				if (image == null && preloader.complete) {
 					

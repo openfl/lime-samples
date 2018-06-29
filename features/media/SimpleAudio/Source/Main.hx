@@ -64,14 +64,16 @@ class Main extends Application {
 			
 			case DOM:
 				
-				context.element.style.backgroundColor = "#3CB878";
+				var element = context.dom;
+				
+				element.style.backgroundColor = "#3CB878";
 			
 			case FLASH:
 				
-				var graphics = context.sprite.graphics;
+				var sprite = context.flash;
 				
-				graphics.beginFill (0x3CB878);
-				graphics.drawRect (0, 0, window.width, window.height);
+				sprite.graphics.beginFill (0x3CB878);
+				sprite.graphics.drawRect (0, 0, window.width, window.height);
 			
 			case OPENGL, OPENGLES, WEBGL:
 				

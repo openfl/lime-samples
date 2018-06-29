@@ -91,7 +91,7 @@ class Main extends Application {
 			
 			case DOM:
 				
-				var element = context.element;
+				var element = context.dom;
 				
 				if (image == null && preloader.complete) {
 					
@@ -104,7 +104,7 @@ class Main extends Application {
 			
 			case FLASH:
 				
-				var sprite = context.sprite;
+				var sprite = context.flash;
 				
 				if (image == null && preloader.complete) {
 					

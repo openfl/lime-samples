@@ -8,8 +8,8 @@ import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLTexture;
 import lime.graphics.opengl.GLUniformLocation;
 import lime.graphics.Image;
+import lime.graphics.RenderContext;
 import lime.math.Matrix4;
-import lime.ui.Window;
 import lime.utils.Assets;
 import lime.utils.Float32Array;
 import lime.utils.GLUtils;
@@ -39,13 +39,13 @@ class Main extends Application {
 	}
 	
 	
-	public override function render (window:Window):Void {
+	public override function render (context:RenderContext):Void {
 		
-		switch (window.context.type) {
+		switch (context.type) {
 			
 			case CAIRO:
 				
-				var cairo = window.context.cairo;
+				var cairo = context.cairo;
 				
 				if (image == null && preloader.complete) {
 					
@@ -57,10 +57,10 @@ class Main extends Application {
 					
 				}
 				
-				var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;
-				var g = ((config.windows[0].background >> 8) & 0xFF) / 0xFF;
-				var b = (config.windows[0].background & 0xFF) / 0xFF;
-				var a = ((config.windows[0].background >> 24) & 0xFF) / 0xFF;
+				var r = ((window.config.background >> 16) & 0xFF) / 0xFF;
+				var g = ((window.config.background >> 8) & 0xFF) / 0xFF;
+				var b = (window.config.background & 0xFF) / 0xFF;
+				var a = ((window.config.background >> 24) & 0xFF) / 0xFF;
 				
 				cairo.setSourceRGB (r, g, b);
 				cairo.paint ();
@@ -77,13 +77,13 @@ class Main extends Application {
 			
 			case CANVAS:
 				
-				var ctx = window.context.ctx;
+				var ctx = context.ctx;
 				
 				if (image == null && preloader.complete) {
 					
 					image = Assets.getImage ("assets/lime.png");
 					
-					ctx.fillStyle = "#" + StringTools.hex (config.windows[0].background, 6);
+					ctx.fillStyle = "#" + StringTools.hex (window.config.background, 6);
 					ctx.fillRect (0, 0, window.width, window.height);
 					ctx.drawImage (image.src, 0, 0, image.width, image.height);
 					
@@ -91,20 +91,20 @@ class Main extends Application {
 			
 			case DOM:
 				
-				var element = window.context.element;
+				var element = context.element;
 				
 				if (image == null && preloader.complete) {
 					
 					image = Assets.getImage ("assets/lime.png");
 					
-					element.style.backgroundColor = "#" + StringTools.hex (config.windows[0].background, 6);
+					element.style.backgroundColor = "#" + StringTools.hex (window.config.background, 6);
 					element.appendChild (image.src);
 					
 				}
 			
 			case FLASH:
 				
-				var sprite = window.context.sprite;
+				var sprite = context.sprite;
 				
 				if (image == null && preloader.complete) {
 					
@@ -119,7 +119,7 @@ class Main extends Application {
 			
 			case OPENGL, OPENGLES, WEBGL:
 				
-				var gl = window.context.webgl;
+				var gl = context.webgl;
 				
 				if (image == null && preloader.complete) {
 					
@@ -201,10 +201,10 @@ class Main extends Application {
 				
 				gl.viewport (0, 0, window.width, window.height);
 				
-				var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;
-				var g = ((config.windows[0].background >> 8) & 0xFF) / 0xFF;
-				var b = (config.windows[0].background & 0xFF) / 0xFF;
-				var a = ((config.windows[0].background >> 24) & 0xFF) / 0xFF;
+				var r = ((window.config.background >> 16) & 0xFF) / 0xFF;
+				var g = ((window.config.background >> 8) & 0xFF) / 0xFF;
+				var b = (window.config.background & 0xFF) / 0xFF;
+				var a = ((window.config.background >> 24) & 0xFF) / 0xFF;
 				
 				gl.clearColor (r, g, b, a);
 				gl.clear (gl.COLOR_BUFFER_BIT);

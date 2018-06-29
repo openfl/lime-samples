@@ -2,9 +2,9 @@ package;
 
 
 import lime.app.Application;
-import lime.graphics.Renderer;
+import lime.graphics.RenderContext;
 import lime.media.AudioSource;
-import lime.Assets;
+import lime.utils.Assets;
 
 
 class Main extends Application {
@@ -21,7 +21,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onMouseDown (_, _, _, _):Void {
+	public override function onMouseDown (x:Float, y:Float, button:Int):Void {
 		
 		if (sound != null) {
 			
@@ -44,30 +44,38 @@ class Main extends Application {
 	}
 	
 	
-	public override function render (renderer:Renderer):Void {
+	public override function render (context:RenderContext):Void {
 		
-		switch (renderer.context) {
+		switch (context.type) {
 			
-			case CAIRO (cairo):
+			case CAIRO:
+				
+				var cairo = context.cairo;
 				
 				cairo.setSourceRGB (60 / 255, 184 / 255, 7 / 255);
 				cairo.paint ();
 			
-			case CANVAS (context):
+			case CANVAS:
 				
-				context.fillStyle = "#3CB878";
-				context.fillRect (0, 0, window.width, window.height);
-			
-			case DOM (element):
+				var ctx = context.ctx;
 				
-				element.style.backgroundColor = "#3CB878";
+				ctx.fillStyle = "#3CB878";
+				ctx.fillRect (0, 0, window.width, window.height);
 			
-			case FLASH (sprite):
+			case DOM:
 				
-				sprite.graphics.beginFill (0x3CB878);
-				sprite.graphics.drawRect (0, 0, window.width, window.height);
+				context.element.style.backgroundColor = "#3CB878";
 			
-			case OPENGL (gl):
+			case FLASH:
+				
+				var graphics = context.sprite.graphics;
+				
+				graphics.beginFill (0x3CB878);
+				graphics.drawRect (0, 0, window.width, window.height);
+			
+			case OPENGL, OPENGLES, WEBGL:
+				
+				var gl = context.webgl;
 				
 				gl.viewport (0, 0, window.width, window.height);
 				gl.clearColor (60 / 255, 184 / 255, 7 / 255, 1);

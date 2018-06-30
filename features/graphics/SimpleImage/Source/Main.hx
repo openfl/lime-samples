@@ -57,10 +57,10 @@ class Main extends Application {
 					
 				}
 				
-				var r = ((window.config.background >> 16) & 0xFF) / 0xFF;
-				var g = ((window.config.background >> 8) & 0xFF) / 0xFF;
-				var b = (window.config.background & 0xFF) / 0xFF;
-				var a = ((window.config.background >> 24) & 0xFF) / 0xFF;
+				var r = ((context.attributes.background >> 16) & 0xFF) / 0xFF;
+				var g = ((context.attributes.background >> 8) & 0xFF) / 0xFF;
+				var b = (context.attributes.background & 0xFF) / 0xFF;
+				var a = ((context.attributes.background >> 24) & 0xFF) / 0xFF;
 				
 				cairo.setSourceRGB (r, g, b);
 				cairo.paint ();
@@ -83,7 +83,7 @@ class Main extends Application {
 					
 					image = Assets.getImage ("assets/lime.png");
 					
-					ctx.fillStyle = "#" + StringTools.hex (window.config.background, 6);
+					ctx.fillStyle = "#" + StringTools.hex (context.attributes.background, 6);
 					ctx.fillRect (0, 0, window.width, window.height);
 					ctx.drawImage (image.src, 0, 0, image.width, image.height);
 					
@@ -97,7 +97,7 @@ class Main extends Application {
 					
 					image = Assets.getImage ("assets/lime.png");
 					
-					element.style.backgroundColor = "#" + StringTools.hex (window.config.background, 6);
+					element.style.backgroundColor = "#" + StringTools.hex (context.attributes.background, 6);
 					element.appendChild (image.src);
 					
 				}
@@ -201,10 +201,10 @@ class Main extends Application {
 				
 				gl.viewport (0, 0, window.width, window.height);
 				
-				var r = ((window.config.background >> 16) & 0xFF) / 0xFF;
-				var g = ((window.config.background >> 8) & 0xFF) / 0xFF;
-				var b = (window.config.background & 0xFF) / 0xFF;
-				var a = ((window.config.background >> 24) & 0xFF) / 0xFF;
+				var r = ((context.attributes.background >> 16) & 0xFF) / 0xFF;
+				var g = ((context.attributes.background >> 8) & 0xFF) / 0xFF;
+				var b = (context.attributes.background & 0xFF) / 0xFF;
+				var a = ((context.attributes.background >> 24) & 0xFF) / 0xFF;
 				
 				gl.clearColor (r, g, b, a);
 				gl.clear (gl.COLOR_BUFFER_BIT);

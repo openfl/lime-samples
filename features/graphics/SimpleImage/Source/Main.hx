@@ -12,7 +12,6 @@ import lime.graphics.RenderContext;
 import lime.math.Matrix4;
 import lime.utils.Assets;
 import lime.utils.Float32Array;
-import lime.utils.GLUtils;
 
 #if flash
 import flash.display.Bitmap;
@@ -153,7 +152,7 @@ class Main extends Application {
 							gl_FragColor = texture2D (uImage0, vTexCoord);
 						}";
 					
-					glProgram = GLUtils.createProgram (vertexSource, fragmentSource);
+					glProgram = GLProgram.fromSources (gl, vertexSource, fragmentSource);
 					gl.useProgram (glProgram);
 					
 					glVertexAttribute = gl.getAttribLocation (glProgram, "aPosition");

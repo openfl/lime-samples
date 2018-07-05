@@ -4,7 +4,7 @@
 	<meta title="Text Rendering" package="org.openfl.lime.textrendering" version="1.0.0" company="OpenFL" />
 	<app main="Main" path="Export" file="TextRendering" />
 	
-	<window width="512" height="288" />
+	<window width="512" height="288" hardware="false" />
 	
 	<source path="Source" />
 	

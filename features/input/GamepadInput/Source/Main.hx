@@ -2,7 +2,6 @@ package;
 
 
 import lime.app.Application;
-import lime.app.Config;
 import lime.graphics.RenderContext;
 import lime.math.Vector2;
 import lime.ui.Gamepad;
@@ -26,29 +25,6 @@ class Main extends Application {
 	public function new () {
 		
 		super ();
-		
-	}
-	
-	
-	public override function create (config:Config):Void {
-		
-		super.create (config);
-		
-		stage = new Stage (window, 0xFFFFFF);
-		square = new Sprite ();
-		
-		var fill = new Sprite ();
-		fill.graphics.beginFill (0xBFFF00);
-		fill.graphics.drawRect (0, 0, 100, 100);
-		fill.x = -50;
-		fill.y = -50;
-		square.addChild (fill);
-		
-		square.x = window.width / 2;
-		square.y = window.height / 2;
-		stage.addChild (square);
-		
-		addModule (stage);
 		
 	}
 	
@@ -108,6 +84,27 @@ class Main extends Application {
 	public override function onGamepadDisconnect (gamepad:Gamepad):Void {
 		
 		trace ("Gamepad disconnected: " + gamepad.id);
+		
+	}
+	
+	
+	public override function onWindowCreate ():Void {
+		
+		stage = new Stage (window, 0xFFFFFF);
+		square = new Sprite ();
+		
+		var fill = new Sprite ();
+		fill.graphics.beginFill (0xBFFF00);
+		fill.graphics.drawRect (0, 0, 100, 100);
+		fill.x = -50;
+		fill.y = -50;
+		square.addChild (fill);
+		
+		square.x = window.width / 2;
+		square.y = window.height / 2;
+		stage.addChild (square);
+		
+		addModule (stage);
 		
 	}
 	

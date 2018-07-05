@@ -2,13 +2,11 @@ package;
 
 
 import lime.app.Application;
-import lime.app.Config;
 import lime.graphics.RenderContext;
 import lime.math.Vector2;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.Touch;
-import lime.ui.Window;
 import openfl.display.Sprite;
 import openfl.display.Stage;
 
@@ -32,30 +30,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function create (config:Config):Void {
-		
-		super.create (config);
-		
-		stage = new Stage (window, 0xFFFFFF);
-		square = new Sprite ();
-		
-		var fill = new Sprite ();
-		fill.graphics.beginFill (0xBFFF00);
-		fill.graphics.drawRect (0, 0, 100, 100);
-		fill.x = -50;
-		fill.y = -50;
-		square.addChild (fill);
-		
-		square.x = window.width / 2;
-		square.y = window.height / 2;
-		stage.addChild (square);
-		
-		addModule (stage);
-		
-	}
-	
-	
-	public override function onKeyDown (window:Window, key:KeyCode, modifier:KeyModifier):Void {
+	public override function onKeyDown (key:KeyCode, modifier:KeyModifier):Void {
 		
 		switch (key) {
 			
@@ -70,7 +45,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onKeyUp (window:Window, key:KeyCode, modifier:KeyModifier):Void {
+	public override function onKeyUp (key:KeyCode, modifier:KeyModifier):Void {
 		
 		switch (key) {
 			
@@ -85,7 +60,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onMouseDown (window:Window, x:Float, y:Float, button:Int):Void {
+	public override function onMouseDown (x:Float, y:Float, button:Int):Void {
 		
 		if (targetPoint == null) {
 			
@@ -99,7 +74,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onMouseMove (window:Window, x:Float, y:Float):Void {
+	public override function onMouseMove (x:Float, y:Float):Void {
 		
 		if (targetPoint != null) {
 			
@@ -111,7 +86,7 @@ class Main extends Application {
 	}
 	
 	
-	public override function onMouseUp (window:Window, x:Float, y:Float, button:Int):Void {
+	public override function onMouseUp (x:Float, y:Float, button:Int):Void {
 		
 		targetPoint = null;
 		
@@ -147,6 +122,27 @@ class Main extends Application {
 		
 		targetPoint.x = touch.x * window.width;
 		targetPoint.y = touch.y * window.height;
+		
+	}
+	
+	
+	public override function onWindowCreate ():Void {
+		
+		stage = new Stage (window, 0xFFFFFF);
+		square = new Sprite ();
+		
+		var fill = new Sprite ();
+		fill.graphics.beginFill (0xBFFF00);
+		fill.graphics.drawRect (0, 0, 100, 100);
+		fill.x = -50;
+		fill.y = -50;
+		square.addChild (fill);
+		
+		square.x = window.width / 2;
+		square.y = window.height / 2;
+		stage.addChild (square);
+		
+		addModule (stage);
 		
 	}
 	

@@ -10,9 +10,8 @@ import lime.graphics.opengl.GLTexture;
 import lime.math.Matrix4;
 
 import lime.utils.Float32Array;
-import lime.utils.GLUtils;
 
-import lime.graphics.opengl.WebGLContext;
+import lime.graphics.WebGLRenderContext;
 
 class OpenglRender
 {
@@ -29,7 +28,7 @@ class OpenglRender
 	private static var b:Float;
 	private static var a:Float;
 
-	public static function init(gl:WebGLContext, background:Int, image:Image, scale:Float):Void {
+	public static function init(gl:WebGLRenderContext, background:Int, image:Image, scale:Float):Void {
 
 		r = ((background >> 16) & 0xFF) / 0xFF;
 		g = ((background >> 8) & 0xFF) / 0xFF;
@@ -62,7 +61,7 @@ class OpenglRender
 				gl_FragColor = texture2D (uImage0, vTexCoord);
 			}";
 		
-		program = GLUtils.createProgram (vertexSource, fragmentSource);
+		program = GLProgram.fromSources (gl, vertexSource, fragmentSource);
 		gl.useProgram (program);
 		
 		vertexAttribute = gl.getAttribLocation (program, "aPosition");
@@ -74,7 +73,7 @@ class OpenglRender
 		gl.enableVertexAttribArray (textureAttribute);
 		gl.uniform1i (imageUniform, 0);
 		
-		var data = [					
+		var data = [
 			image.width*scale, image.height*scale, 0, 1, 1,
 			0, image.height*scale, 0, 0, 1,
 			image.width*scale, 0, 0, 1, 0,
@@ -99,15 +98,15 @@ class OpenglRender
 	}
 
 
-	public static function changeTextureData(gl:WebGLContext, image:Image):Void 
+	public static function changeTextureData(gl:WebGLRenderContext, image:Image):Void 
 	{
 		gl.bindTexture(gl.TEXTURE_2D, texture);
 		gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, image.buffer.width, image.buffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image.data);
 	}
 	
 	
-	public static function render(gl:WebGLContext, width:Int, height:Int):Void {
-
+	public static function render(gl:WebGLRenderContext, width:Int, height:Int):Void {
+		
 		gl.viewport (0, 0, width, height);
 		
 		gl.clearColor (r, g, b, a);

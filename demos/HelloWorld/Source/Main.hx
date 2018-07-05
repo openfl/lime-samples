@@ -2,7 +2,7 @@ package;
 
 
 import lime.app.Application;
-import lime.graphics.Renderer;
+import lime.graphics.RenderContext;
 
 
 class Main extends Application {
@@ -17,38 +17,43 @@ class Main extends Application {
 	}
 	
 	
-	public override function render (renderer:Renderer):Void {
+	public override function render (context:RenderContext):Void {
 		
-		switch (renderer.context) {
+		switch (context.type) {
 			
-			case CAIRO (cairo):
+			case CAIRO:
+				
+				var cairo = context.cairo;
 				
 				cairo.setSourceRGB (0.75, 1, 0);
 				cairo.paint ();
 			
-			case CANVAS (context):
+			case CANVAS:
 				
-				context.fillStyle = "#BFFF00";
-				context.fillRect (0, 0, window.width, window.height);
+				var ctx = context.canvas2D;
+				
+				ctx.fillStyle = "#BFFF00";
+				ctx.fillRect (0, 0, window.width, window.height);
 			
-			case DOM (element):
+			case DOM:
+				
+				var element = context.dom;
 				
 				element.style.backgroundColor = "#BFFF00";
 			
-			case FLASH (sprite):
+			case FLASH:
+				
+				var sprite = context.flash;
 				
 				sprite.graphics.beginFill (0xBFFF00);
 				sprite.graphics.drawRect (0, 0, window.width, window.height);
 			
-			case OPENGL (gl):
+			case OPENGL, OPENGLES, WEBGL:
+				
+				var gl = context.webgl;
 				
 				gl.clearColor (0.75, 1, 0, 1);
 				gl.clear (gl.COLOR_BUFFER_BIT);
-			
-			//case CONSOLE (context):
-				//
-				//context.clearColor (0.75, 1, 0, 1);
-				//context.clear ();
 			
 			default:
 			

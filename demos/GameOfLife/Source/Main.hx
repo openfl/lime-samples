@@ -1,13 +1,13 @@
 package;
 
 import lime.app.Application;
-import lime.graphics.Renderer;
+import lime.graphics.RenderContext;
 import lime.math.Rectangle;
 import lime.math.Vector2;
 import lime.ui.Window;
 import lime.graphics.Image;
-import lime.graphics.utils.ImageCanvasUtil;
-import lime.Assets;
+// import lime.graphics.utils.ImageCanvasUtil;
+import lime.utils.Assets;
 
 import haxe.Timer;
 
@@ -40,24 +40,27 @@ class Main extends Application {
 		super ();
 	}
 	
-	public override function onWindowCreate (window:Window):Void {
+	public override function onWindowCreate ():Void {
 		
 		src_image  = new Image(null, 0, 0, w, h, bgColor);
 		dest_image = new Image(null, 0, 0, w, h, bgColor);
 		
-		switch (window.renderer.context) {
+		switch (window.context.type) {
 			
-			case CANVAS (context):
-				context.fillStyle = "#" + StringTools.hex (config.windows[0].background, 6);
-				context.fillRect (0, 0, window.width, window.height);
+			case CANVAS:
+				var ctx = window.context.canvas2D;
+				ctx.fillStyle = "#" + StringTools.hex (window.context.attributes.background, 6);
+				ctx.fillRect (0, 0, window.width, window.height);
 			
-			case DOM (element):				
-				element.style.backgroundColor = "#" + StringTools.hex (config.windows[0].background, 6);
+			case DOM:
+				var element = window.context.dom;
+				element.style.backgroundColor = "#" + StringTools.hex (window.context.attributes.background, 6);
 				element.style.margin = "auto";
 				element.appendChild (src_image.src);
 				
-			case FLASH (sprite):
+			case FLASH:
 				#if flash
+				var sprite = window.context.flash;
 				dest_bitmap = new flash.display.Bitmap (dest_image.src);
 				dest_bitmap.scaleX = dest_bitmap.scaleY = scale;
 				sprite.addChild (dest_bitmap);
@@ -67,10 +70,11 @@ class Main extends Application {
 				sprite.addChild (src_bitmap);
 				#end
 				
-			case OPENGL (gl):
+			case OPENGL, OPENGLES, WEBGL:
+				var gl = window.context.webgl;
 				bgColor -= 255; // alpha reverse
 				fgColor -= 255; // alpha reverse
-				OpenglRender.init(gl, config.windows[0].background, src_image, scale);
+				OpenglRender.init(gl, window.context.attributes.background, src_image, scale);
 				
 			default:
 		}
@@ -79,15 +83,15 @@ class Main extends Application {
 		CellAutomatation.genRandomCells( src_image , 120, 85, bgColor, fgColor);
 		CellAutomatation.genRandomCells( src_image , 110, 90, bgColor, fgColor);
 		
-		lastTime = Timer.stamp();		
+		lastTime = Timer.stamp();
 	}	
 	
-	public override function onMouseDown (window:Window, x:Float, y:Float, button:Int):Void {	
+	public override function onMouseDown (x:Float, y:Float, button:Int):Void {	
 		CellAutomatation.genRandomCells(src_image , x/scale, y/scale, bgColor, fgColor);
 		CellAutomatation.genRandomCells(dest_image, x/scale, y/scale, bgColor, fgColor);
 	}	
 	
-	public override function render (renderer:Renderer):Void {
+	public override function render (context:RenderContext):Void {
 		
 		// not at full fps:
 		if (Timer.stamp()-lastTime > time)
@@ -101,43 +105,47 @@ class Main extends Application {
 			CellAutomatation.nextLifeGeneration ( src_image, dest_image, rule, bgColor, fgColor, swap );
 			swap = ! swap;
 			
-			switch (renderer.context) {
-				case CANVAS (context):
-					context.imageSmoothingEnabled = false; // disable antialiasing 
-					untyped context.mozImageSmoothingEnabled = false; // firefox hack
-					untyped context.oImageSmoothingEnabled = false; // opera hack
-					untyped context.webkitImageSmoothingEnabled = false; // safari hack
-					untyped context.msImageSmoothingEnabled = false; // ie hack
+			switch (context.type) {
+				case CANVAS:
+					var ctx = context.canvas2D;
+					ctx.imageSmoothingEnabled = false; // disable antialiasing 
+					untyped ctx.mozImageSmoothingEnabled = false; // firefox hack
+					untyped ctx.oImageSmoothingEnabled = false; // opera hack
+					untyped ctx.webkitImageSmoothingEnabled = false; // safari hack
+					untyped ctx.msImageSmoothingEnabled = false; // ie hack
 					
 					if (swap) {
-						ImageCanvasUtil.sync (src_image, true);
-						context.drawImage (src_image.src , 0, 0, src_image.width  * scale, src_image.height  * scale);
+						// ImageCanvasUtil.sync (src_image, true);
+						ctx.drawImage (src_image.src , 0, 0, src_image.width  * scale, src_image.height  * scale);
 					}
 					else {
-						ImageCanvasUtil.sync (dest_image, true);
-						context.drawImage (dest_image.src, 0, 0, dest_image.width * scale, dest_image.height * scale);
+						// ImageCanvasUtil.sync (dest_image, true);
+						ctx.drawImage (dest_image.src, 0, 0, dest_image.width * scale, dest_image.height * scale);
 					}
 				
-				case DOM (element):
+				case DOM:
+					var element = context.dom;
 					element.removeChild(element.firstChild);
 					var dom_image:Image = new Image(null, 0, 0, w, h, bgColor);
 					if (swap) {
-						ImageCanvasUtil.sync (src_image, true);
-						ImageCanvasUtil.copyPixels(dom_image, src_image, new Rectangle(0, 0, w, h), new Vector2(0, 0) );
+						// ImageCanvasUtil.sync (src_image, true);
+						dom_image.copyPixels(src_image, new Rectangle(0, 0, w, h), new Vector2(0, 0) );
 					}
 					else {
-						ImageCanvasUtil.sync (dest_image, true);
-						ImageCanvasUtil.copyPixels(dom_image, dest_image, new Rectangle(0, 0, w, h), new Vector2(0, 0) );
+						// ImageCanvasUtil.sync (dest_image, true);
+						dom_image.copyPixels(dest_image, new Rectangle(0, 0, w, h), new Vector2(0, 0) );
 					}
-					ImageCanvasUtil.resize(dom_image, Math.floor(w * scale), Math.floor(h * scale) );
+					// ImageCanvasUtil.resize(dom_image, Math.floor(w * scale), Math.floor(h * scale) );
 					element.appendChild (dom_image.src);
 					
-				case FLASH (sprite):
+				case FLASH:
 					#if flash
+					var sprite = context.flash;
 					sprite.swapChildren(src_bitmap, dest_bitmap);
 					#end
 					
-				case OPENGL (gl):
+				case OPENGL, OPENGLES, WEBGL:
+					var gl = context.webgl;
 					if (swap)
 						OpenglRender.changeTextureData(gl, src_image);
 					else
@@ -149,14 +157,14 @@ class Main extends Application {
 		}
 		
 		// OpenGl Draw (every frame):
-		switch (renderer.context) {
-			case OPENGL (gl):
-				OpenglRender.render(gl, window.width, window.height);				
+		switch (context.type) {
+			case OPENGL, OPENGLES, WEBGL:
+				var gl = context.webgl;
+				OpenglRender.render(gl, window.width, window.height);
 			default:
 		}
 		
 	}
 	
-
 	
 }

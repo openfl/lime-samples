@@ -8,7 +8,6 @@ import lime.graphics.opengl.GLTexture;
 import lime.graphics.WebGLRenderContext;
 import lime.math.Matrix4;
 import lime.utils.Float32Array;
-import lime.utils.GLUtils;
 
 
 class GLRenderer {
@@ -106,7 +105,7 @@ class GLRenderer {
 			
 		";
 		
-		program = GLUtils.createProgram (vertexSource, fragmentSource);
+		program = GLProgram.fromSources (gl, vertexSource, fragmentSource);
 		gl.useProgram (program);
 		
 	}

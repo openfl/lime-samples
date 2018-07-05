@@ -8,10 +8,10 @@ import lime.graphics.opengl.GLBuffer;
 import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLShader;
 import lime.graphics.opengl.GLUniformLocation;
-import lime.graphics.Renderer;
+import lime.graphics.RenderContext;
 import lime.ui.Window;
+import lime.utils.Assets;
 import lime.utils.Float32Array;
-import lime.Assets;
 
 
 class Main extends Application {
@@ -130,18 +130,20 @@ class Main extends Application {
 	}
 	
 	
-	public override function onWindowCreate (window:Window):Void {
+	public override function onWindowCreate ():Void {
 		
-		switch (window.renderer.context) {
+		switch (window.context.type) {
 			
-			case OPENGL (gl):
+			case OPENGL, OPENGLES, WEBGL:
+				
+				var gl = window.context.webgl;
 				
 				fragmentShaders = randomizeArray (fragmentShaders);
 				currentIndex = 0;
 				
 				buffer = gl.createBuffer ();
 				gl.bindBuffer (gl.ARRAY_BUFFER, buffer);
-				gl.bufferData (gl.ARRAY_BUFFER, 48, new Float32Array ([ -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0 ]), gl.STATIC_DRAW);
+				gl.bufferData (gl.ARRAY_BUFFER, new Float32Array ([ -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0 ]), gl.STATIC_DRAW);
 				gl.bindBuffer (gl.ARRAY_BUFFER, null);
 				
 			default:
@@ -170,11 +172,13 @@ class Main extends Application {
 	}
 	
 	
-	public override function render (renderer:Renderer):Void {
+	public override function render (context:RenderContext):Void {
 		
-		switch (renderer.context) {
+		switch (context.type) {
 			
-			case OPENGL (gl):
+			case OPENGL, OPENGLES, WEBGL:
+				
+				var gl = context.webgl;
 				
 				if (currentProgram == null) return;
 				

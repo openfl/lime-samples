@@ -1,0 +1,5 @@
+*.swf
+*.n
+bin/**/*.js*
+bin/hl
+bin/windows

@@ -1,0 +1,5 @@
+-cp ../src
+-hl ../bin/hl/application.hl
+-lib lime
+-main Main
+-debug

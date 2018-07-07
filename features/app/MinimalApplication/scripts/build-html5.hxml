@@ -1,0 +1,5 @@
+-cp ../src
+-js ../bin/html5/application.js
+-lib lime
+-main Main
+-debug

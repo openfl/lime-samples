@@ -1,0 +1,7 @@
+-cp ../src
+-swf ../bin/air/application.swf
+-lib lime
+-main Main
+-swf-version 19
+-D air
+-debug

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="OpenWindow" package="com.sample.openwindow" version="1.0.0" company="Company Name" />
+	<app main="Main" path="Export" file="OpenWindow" />
+	
+	<window background="#BFFF00" />
+	
+	<source path="Source" />
+	
+	<haxelib name="lime" />
+	
+	<assets path="Assets" rename="assets" />
+	
+</project>

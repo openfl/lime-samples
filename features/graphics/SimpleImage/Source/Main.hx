@@ -210,7 +210,8 @@ class Main extends Application {
 				
 				if (image != null) {
 					
-					var matrix = Matrix4.createOrtho (0, window.width, window.height, 0, -1000, 1000);
+					var matrix = new Matrix4 ();
+					matrix.createOrtho (0, window.width, window.height, 0, -1000, 1000);
 					gl.uniformMatrix4fv (glMatrixUniform, false, matrix);
 					
 					gl.activeTexture (gl.TEXTURE0);

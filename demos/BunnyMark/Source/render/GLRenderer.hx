@@ -65,7 +65,8 @@ class GLRenderer {
 	private function createMatrix ():Void {
 		
 		var matrixUniform = gl.getUniformLocation (program, "uMatrix");
-		var matrix = Matrix4.createOrtho (0, width, height, 0, -1000, 1000);
+		var matrix = new Matrix4 ();
+		matrix.createOrtho (0, width, height, 0, -1000, 1000);
 		gl.uniformMatrix4fv (matrixUniform, false, matrix);
 		
 	}

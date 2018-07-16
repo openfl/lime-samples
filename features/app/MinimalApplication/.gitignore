@@ -4,4 +4,4 @@ bin/**/*.js*
 bin/hl
 bin/windows
 bin/linux
-bin/mac
+bin/macos

@@ -1,0 +1,5 @@
+-cp ../src
+-cpp ../bin/macos
+-lib lime
+-main Main
+-debug

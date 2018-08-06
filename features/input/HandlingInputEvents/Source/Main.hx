@@ -128,6 +128,8 @@ class Main extends Application {
 	
 	public override function onWindowCreate ():Void {
 		
+		#if !flash
+		
 		stage = new Stage (window, 0xFFFFFF);
 		square = new Sprite ();
 		
@@ -143,6 +145,8 @@ class Main extends Application {
 		stage.addChild (square);
 		
 		addModule (stage);
+		
+		#end
 		
 	}
 	

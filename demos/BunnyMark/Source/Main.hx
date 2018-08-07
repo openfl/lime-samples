@@ -7,6 +7,7 @@ import lime.graphics.RenderContext;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.utils.Assets;
+import lime.utils.Log;
 import render.GLRenderer;
 
 
@@ -91,7 +92,7 @@ class Main extends Application {
 			
 			default:
 				
-				throw "Unsupported render context";
+				Log.warn ("Current render context not supported by this sample");
 			
 		}
 		
@@ -110,7 +111,7 @@ class Main extends Application {
 		
 		if (!preloader.complete) return;
 		
-		glRenderer.render ();
+		if (glRenderer != null) glRenderer.render ();
 		
 	}
 	

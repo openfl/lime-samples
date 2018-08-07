@@ -12,6 +12,7 @@ import lime.graphics.RenderContext;
 import lime.ui.Window;
 import lime.utils.Assets;
 import lime.utils.Float32Array;
+import lime.utils.Log;
 
 
 class Main extends Application {
@@ -43,7 +44,10 @@ class Main extends Application {
 	
 	private function compile ():Void {
 		
-		var program = GL.createProgram ();
+		var gl = window.context.webgl;
+		if (gl == null) return;
+		
+		var program = gl.createProgram ();
 		var vertex = Assets.getText ("assets/heroku.vert");
 		
 		#if desktop
@@ -54,47 +58,47 @@ class Main extends Application {
 		
 		fragment += Assets.getText ("assets/" + fragmentShaders[currentIndex] + ".frag");
 		
-		var vs = createShader (vertex, GL.VERTEX_SHADER);
-		var fs = createShader (fragment, GL.FRAGMENT_SHADER);
+		var vs = createShader (vertex, gl.VERTEX_SHADER);
+		var fs = createShader (fragment, gl.FRAGMENT_SHADER);
 		
 		if (vs == null || fs == null) return;
 		
-		GL.attachShader (program, vs);
-		GL.attachShader (program, fs);
+		gl.attachShader (program, vs);
+		gl.attachShader (program, fs);
 		
-		GL.deleteShader (vs);
-		GL.deleteShader (fs);
+		gl.deleteShader (vs);
+		gl.deleteShader (fs);
 		
-		GL.linkProgram (program);
+		gl.linkProgram (program);
 		
-		if (GL.getProgramParameter (program, GL.LINK_STATUS) == 0) {
+		if (gl.getProgramParameter (program, gl.LINK_STATUS) == 0) {
 			
-			trace (GL.getProgramInfoLog (program));
-			trace ("VALIDATE_STATUS: " + GL.getProgramParameter (program, GL.VALIDATE_STATUS));
-			trace ("ERROR: " + GL.getError ());
+			trace (gl.getProgramInfoLog (program));
+			trace ("VALIDATE_STATUS: " + gl.getProgramParameter (program, gl.VALIDATE_STATUS));
+			trace ("ERROR: " + gl.getError ());
 			return;
 			
 		}
 		
 		if (currentProgram != null) {
 			
-			GL.deleteProgram (currentProgram);
+			gl.deleteProgram (currentProgram);
 			
 		}
 		
 		currentProgram = program;
 		
-		positionAttribute = GL.getAttribLocation (currentProgram, "surfacePosAttrib");
-		GL.enableVertexAttribArray (positionAttribute);
+		positionAttribute = gl.getAttribLocation (currentProgram, "surfacePosAttrib");
+		gl.enableVertexAttribArray (positionAttribute);
 		
-		vertexPosition = GL.getAttribLocation (currentProgram, "position");
-		GL.enableVertexAttribArray (vertexPosition);
+		vertexPosition = gl.getAttribLocation (currentProgram, "position");
+		gl.enableVertexAttribArray (vertexPosition);
 		
-		timeUniform = GL.getUniformLocation (program, "time");
-		mouseUniform = GL.getUniformLocation (program, "mouse");
-		resolutionUniform = GL.getUniformLocation (program, "resolution");
-		backbufferUniform = GL.getUniformLocation (program, "backbuffer");
-		surfaceSizeUniform = GL.getUniformLocation (program, "surfaceSize");
+		timeUniform = gl.getUniformLocation (program, "time");
+		mouseUniform = gl.getUniformLocation (program, "mouse");
+		resolutionUniform = gl.getUniformLocation (program, "resolution");
+		backbufferUniform = gl.getUniformLocation (program, "backbuffer");
+		surfaceSizeUniform = gl.getUniformLocation (program, "surfaceSize");
 		
 		startTime = Timer.stamp ();
 		currentTime = startTime;
@@ -104,13 +108,15 @@ class Main extends Application {
 	
 	private function createShader (source:String, type:Int):GLShader {
 		
-		var shader = GL.createShader (type);
-		GL.shaderSource (shader, source);
-		GL.compileShader (shader);
+		var gl = window.context.webgl;
 		
-		if (GL.getShaderParameter (shader, GL.COMPILE_STATUS) == 0) {
+		var shader = gl.createShader (type);
+		gl.shaderSource (shader, source);
+		gl.compileShader (shader);
+		
+		if (gl.getShaderParameter (shader, gl.COMPILE_STATUS) == 0) {
 			
-			trace (GL.getShaderInfoLog (shader));
+			trace (gl.getShaderInfoLog (shader));
 			trace (source);
 			return null;
 			
@@ -148,7 +154,7 @@ class Main extends Application {
 				
 			default:
 				
-				// not implemented
+				Log.warn ("Current render context not supported by this sample");
 			
 		}
 		
@@ -188,7 +194,7 @@ class Main extends Application {
 				gl.useProgram (currentProgram);
 				
 				gl.uniform1f (timeUniform, currentTime);
-				gl.uniform2f (mouseUniform, 0.1, 0.1); //GL.uniform2f (mouseUniform, (stage.mouseX / stage.stageWidth) * 2 - 1, (stage.mouseY / stage.stageHeight) * 2 - 1);
+				gl.uniform2f (mouseUniform, 0.1, 0.1); //gl.uniform2f (mouseUniform, (stage.mouseX / stage.stageWidth) * 2 - 1, (stage.mouseY / stage.stageHeight) * 2 - 1);
 				gl.uniform2f (resolutionUniform, window.width, window.height);
 				gl.uniform1i (backbufferUniform, 0 );
 				gl.uniform2f (surfaceSizeUniform, window.width, window.height);

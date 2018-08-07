@@ -51,7 +51,17 @@ class Script extends hxp.Script {
 			if (commandArgs.length > 0) {
 				targets = commandArgs;
 			} else {
-				targets = [ "neko", "flash", "linux", "electron" ];
+				var hostPlatform = switch (System.hostPlatform) {
+					case WINDOWS: "windows";
+					case MAC: "mac";
+					case LINUX: "linux";
+					default: "";
+				}
+				if (System.hostPlatform != MAC) {
+					targets = [ "neko", "neko -Dcairo", "flash", hostPlatform, "electron", "electron -Dcanvas", "electron -Ddom" ];
+				} else {
+					targets = [ "neko", "neko -Dcairo", /*"flash", hostPlatform,*/ "electron", "electron -Dcanvas", "electron -Ddom" ];
+				}
 			}
 			
 			for (path in paths) {
@@ -60,13 +70,13 @@ class Script extends hxp.Script {
 					Log.info (Log.accentColor + "Running Sample: " + sampleName + " [" + target + "]" + Log.resetColor);
 					if (FileSystem.exists (Path.combine (path, "script.hx"))) {
 						if (target == "electron") continue; // TODO
-						var args = [ "test", Path.combine (path, "script.hx"), target ];
+						var args = [ "test", Path.combine (path, "script.hx") ].concat (target.split (" "));
 						for (flag in flags.keys ()) {
 							args.push ("-" + flag);
 						}
 						System.runCommand ("", "hxp", args);
 					} else {
-						var args = [ "test", path, target ];
+						var args = [ "test", path, ].concat (target.split (" "));
 						for (flag in flags.keys ()) {
 							args.push ("-" + flag);
 						}

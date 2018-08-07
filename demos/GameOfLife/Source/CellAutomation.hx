@@ -5,7 +5,7 @@ import lime.graphics.Image;
 // coded by Sylvio Sell, 2014 rostock germany
 // for algorithm look here: http://www.conwaylife.com/wiki/Cellular_automaton 
 
-class CellAutomatation
+class CellAutomation
 {
 	// some Rules
 	public static var cellRules = [

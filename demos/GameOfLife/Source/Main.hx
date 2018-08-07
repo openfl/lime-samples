@@ -8,6 +8,7 @@ import lime.ui.Window;
 import lime.graphics.Image;
 // import lime.graphics.utils.ImageCanvasUtil;
 import lime.utils.Assets;
+import lime.utils.Log;
 
 import haxe.Timer;
 
@@ -77,18 +78,20 @@ class Main extends Application {
 				OpenglRender.init(gl, window.context.attributes.background, src_image, scale);
 				
 			default:
+				
+				Log.warn ("Current render context not supported by this sample");
 		}
 		
-		CellAutomatation.genRandomCells( src_image , 100, 80, bgColor, fgColor);
-		CellAutomatation.genRandomCells( src_image , 120, 85, bgColor, fgColor);
-		CellAutomatation.genRandomCells( src_image , 110, 90, bgColor, fgColor);
+		CellAutomation.genRandomCells( src_image , 100, 80, bgColor, fgColor);
+		CellAutomation.genRandomCells( src_image , 120, 85, bgColor, fgColor);
+		CellAutomation.genRandomCells( src_image , 110, 90, bgColor, fgColor);
 		
 		lastTime = Timer.stamp();
 	}	
 	
 	public override function onMouseDown (x:Float, y:Float, button:Int):Void {	
-		CellAutomatation.genRandomCells(src_image , x/scale, y/scale, bgColor, fgColor);
-		CellAutomatation.genRandomCells(dest_image, x/scale, y/scale, bgColor, fgColor);
+		CellAutomation.genRandomCells(src_image , x/scale, y/scale, bgColor, fgColor);
+		CellAutomation.genRandomCells(dest_image, x/scale, y/scale, bgColor, fgColor);
 	}	
 	
 	public override function render (context:RenderContext):Void {
@@ -99,10 +102,10 @@ class Main extends Application {
 			lastTime = Timer.stamp();
 			
 			// change cell automation rule randomly
-			if (Math.random() < 0.1) rule = CellAutomatation.getRandomRule();
+			if (Math.random() < 0.1) rule = CellAutomation.getRandomRule();
 
 			// calculate next state depending on prev state
-			CellAutomatation.nextLifeGeneration ( src_image, dest_image, rule, bgColor, fgColor, swap );
+			CellAutomation.nextLifeGeneration ( src_image, dest_image, rule, bgColor, fgColor, swap );
 			swap = ! swap;
 			
 			switch (context.type) {

@@ -74,11 +74,27 @@ class Script extends hxp.Script {
 						for (flag in flags.keys ()) {
 							args.push ("-" + flag);
 						}
+						for (define in defines.keys ()) {
+							args.push ("-D");
+							if (defines.get (define) != "") {
+								args.push (define + "=" + defines.get (define));
+							} else {
+								args.push (define);
+							}
+						}
 						System.runCommand ("", "hxp", args);
 					} else {
 						var args = [ "test", path, ].concat (target.split (" "));
 						for (flag in flags.keys ()) {
 							args.push ("-" + flag);
+						}
+						for (define in defines.keys ()) {
+							args.push ("-D");
+							if (defines.get (define) != "") {
+								args.push (define + "=" + defines.get (define));
+							} else {
+								args.push (define);
+							}
 						}
 						if (target == "flash") args.push ("-notrace");
 						System.runCommand ("", "lime", args);

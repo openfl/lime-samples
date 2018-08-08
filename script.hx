@@ -15,8 +15,18 @@ class Script extends hxp.Script {
 		
 		super ();
 		
+		initHXCPPCache ();
+		
 		samples = [];
 		findSamples ("", samples);
+		
+		samples.sort (function (a, b) {
+			a = a.toLowerCase ();
+			b = b.toLowerCase ();
+			if (a < b) return -1;
+			if (a > b) return 1;
+			return 0;
+		});
 		
 		switch (command) {
 			
@@ -37,6 +47,23 @@ class Script extends hxp.Script {
 	}
 	
 	
+	private function initHXCPPCache ():Void {
+		
+		if (!FileSystem.exists (".hxcpp_cache")) {
+			
+			System.mkdir (".hxcpp_cache");
+			
+		}
+		
+		if (!flags.exists ("nocache")) {
+			
+			Sys.putEnv ("HXCPP_COMPILE_CACHE", Path.tryFullPath (".hxcpp_cache"));
+			
+		}
+		
+	}
+	
+	
 	private function execSamples ():Void {
 		
 		var paths = [];
@@ -51,9 +78,21 @@ class Script extends hxp.Script {
 				}
 			}
 			
+			if (paths.length == 0 && sampleName == "all") {
+				paths = samples.copy ();
+			}
+			
 			if (paths.length == 0) {
 				for (sample in samples) {
 					if (StringTools.startsWith (sample, sampleName)) {
+						paths.push (sample);
+					}
+				}
+			}
+			
+			if (paths.length == 0) {
+				for (sample in samples) {
+					if (StringTools.startsWith (sample, Path.combine ("haxelib", sampleName))) {
 						paths.push (sample);
 					}
 				}
@@ -89,7 +128,7 @@ class Script extends hxp.Script {
 			if (!flags.exists ("noneko") && !flags.exists ("nocairo")) targets.push ("neko -Dcairo");
 			if (!flags.exists ("noelectron")) targets.push ("electron");
 			if (!flags.exists ("noelectron") && !flags.exists ("nocanvas")) targets.push ("electron -Dcanvas");
-			if (!flags.exists ("noelectron") && !flags.exists ("nodom")) targets.push ("electron -dom");
+			if (!flags.exists ("noelectron") && !flags.exists ("nodom")) targets.push ("electron -Ddom");
 			if (!flags.exists ("nocpp")) targets.push (hostPlatform);
 			if (!flags.exists ("noflash")) targets.push ("flash");
 			
@@ -100,8 +139,6 @@ class Script extends hxp.Script {
 			var sampleName = path.split ("/").pop ();
 			
 			for (target in targets) {
-				
-				Log.info (Log.accentColor + "Running Sample: " + sampleName + " [" + target + "]" + Log.resetColor);
 				
 				var script = "lime";
 				var args = [ command ];
@@ -118,6 +155,8 @@ class Script extends hxp.Script {
 					
 				}
 				
+				Log.info (Log.accentColor + script + " " + command + " " + sampleName + " " + target + Log.resetColor);
+				
 				args = args.concat (target.split (" "));
 				
 				for (flag in flags.keys ()) {
@@ -133,7 +172,7 @@ class Script extends hxp.Script {
 					}
 				}
 				
-				if (target == "flash" && targets.length > 0) {
+				if (target == "flash" && targets.length > 1) {
 					args.push ("-notrace");
 				}
 				

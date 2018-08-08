@@ -16,12 +16,7 @@ class Script extends hxp.Script {
 		super ();
 		
 		samples = [];
-		findSamples ("demos", samples);
-		findSamples ("features/app", samples);
-		findSamples ("features/graphics", samples);
-		findSamples ("features/input", samples);
-		findSamples ("features/media", samples);
-		findSamples ("features/text", samples);
+		findSamples ("", samples);
 		
 		switch (command) {
 			
@@ -115,6 +110,7 @@ class Script extends hxp.Script {
 					
 					script = "hxp";
 					args.push (Path.combine (path, "script.hx"));
+					if (target.split (" ")[0] == "electron") continue; // TODO, MinimalApplication
 					
 				} else {
 					
@@ -152,13 +148,21 @@ class Script extends hxp.Script {
 	
 	private function findSamples (path:String, list:Array<String>):Void {
 		
-		for (fileName in FileSystem.readDirectory (path)) {
+		for (fileName in FileSystem.readDirectory (path != "" ? path : Sys.getCwd ())) {
 			
 			var filePath = Path.combine (path, fileName);
 			
 			if (FileSystem.isDirectory (filePath)) {
 				
-				list.push (Path.standardize (filePath));
+				if (FileSystem.exists (Path.combine (filePath, "project.xml")) || FileSystem.exists (Path.combine (filePath, "script.hx"))) {
+					
+					list.push (Path.standardize (filePath));
+					
+				} else {
+					
+					findSamples (filePath, list);
+					
+				}
 				
 			}
 			

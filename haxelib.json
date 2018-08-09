@@ -4,8 +4,8 @@
   "license": "MIT",
   "tags": [ ],
   "description": "Lime samples",
-  "version": "6.2.0",
-  "releasenote": "Fixed TextRendering, added Cairo rendering",
+  "version": "7.0.0",
+  "releasenote": "Updated for Lime 7, minor fixes",
   "contributors": [ "singmajesty" ],
   "dependencies": {}
 }

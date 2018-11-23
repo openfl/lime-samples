@@ -2,26 +2,19 @@ package;
 
 
 import lime.app.Application;
-import lime.graphics.cairo.CairoImageSurface;
-import lime.graphics.opengl.GLBuffer;
-import lime.graphics.opengl.GLProgram;
-import lime.graphics.opengl.GLTexture;
-import lime.graphics.opengl.GLUniformLocation;
-import lime.graphics.Image;
-import lime.graphics.RenderContext;
+import lime.graphics.cairo.*;
+import lime.graphics.opengl.*;
+import lime.graphics.*;
 import lime.math.Matrix4;
-import lime.utils.Assets;
 import lime.utils.Float32Array;
-
-#if flash
-import flash.display.Bitmap;
-#end
+import lime.graphics.opengl.GL;
+import lime.utils.Assets;
 
 
 class Main extends Application {
 	
 	
-	private var cairoSurface:CairoImageSurface;
+	private var cairoSurface:CairoSurface;
 	private var glBuffer:GLBuffer;
 	private var glMatrixUniform:GLUniformLocation;
 	private var glProgram:GLProgram;
@@ -38,91 +31,45 @@ class Main extends Application {
 	}
 	
 	
-	public override function render (context:RenderContext):Void {
+	public override function render (renderer:RenderContext):Void {
 		
-		switch (context.type) {
+		if (image == null && preloader.complete) {
 			
-			case CAIRO:
+			image = Assets.getImage ("assets/lime.png");
+			
+			switch (renderer.type) {
 				
-				var cairo = context.cairo;
-				
-				if (image == null && preloader.complete) {
+				case CAIRO:
 					
-					image = Assets.getImage ("assets/lime.png");
 					image.format = BGRA32;
 					image.premultiplied = true;
 					
 					cairoSurface = CairoImageSurface.fromImage (image);
-					
-				}
 				
-				var r = ((context.attributes.background >> 16) & 0xFF) / 0xFF;
-				var g = ((context.attributes.background >> 8) & 0xFF) / 0xFF;
-				var b = (context.attributes.background & 0xFF) / 0xFF;
-				var a = ((context.attributes.background >> 24) & 0xFF) / 0xFF;
-				
-				cairo.setSourceRGB (r, g, b);
-				cairo.paint ();
-				
-				if (image != null) {
+				case CANVAS:
+				#if !flash
+					var context = cast(GL.context, Canvas2DRenderContext);
+					context.fillStyle = "#" + StringTools.hex (untyped{config.windows[0].background;}, 6);
+					context.fillRect (0, 0, window.width, window.height);
+					context.drawImage (image.src, 0, 0, image.width, image.height);
+				#end
+				case DOM:
+				#if !flash
+					var element = cast(GL.context,DOMRenderContext);
 					
-					image.format = BGRA32;
-					image.premultiplied = true;
-					
-					cairo.setSourceSurface (cairoSurface, 0, 0);
-					cairo.paint ();
-					
-				}
-			
-			case CANVAS:
-				
-				var ctx = context.canvas2D;
-				
-				if (image == null && preloader.complete) {
-					
-					image = Assets.getImage ("assets/lime.png");
-					
-					ctx.fillStyle = "#" + StringTools.hex (context.attributes.background, 6);
-					ctx.fillRect (0, 0, window.width, window.height);
-					ctx.drawImage (image.src, 0, 0, image.width, image.height);
-					
-				}
-			
-			case DOM:
-				
-				var element = context.dom;
-				
-				if (image == null && preloader.complete) {
-					
-					image = Assets.getImage ("assets/lime.png");
-					
-					element.style.backgroundColor = "#" + StringTools.hex (context.attributes.background, 6);
+					element.style.backgroundColor = "#" + StringTools.hex (untyped{config.windows[0].background;}, 6);
 					element.appendChild (image.src);
-					
-				}
-			
-			case FLASH:
-				
-				var sprite = context.flash;
-				
-				if (image == null && preloader.complete) {
-					
-					image = Assets.getImage ("assets/lime.png");
-					
+				#end
+				case FLASH:
 					#if flash
-					var bitmap = new Bitmap (image.src);
+					var sprite = cast(GL.context,FlashRenderContext);
+					var bitmap = new flash.display.Bitmap (image.src);
 					sprite.addChild (bitmap);
 					#end
-					
-				}
-			
-			case OPENGL, OPENGLES, WEBGL:
 				
-				var gl = context.webgl;
-				
-				if (image == null && preloader.complete) {
-					
-					image = Assets.getImage ("assets/lime.png");
+				case OPENGL:
+				#if !flash
+					var gl = cast(GL.context, WebGL2RenderContext);
 					
 					var vertexSource = 
 						
@@ -152,7 +99,7 @@ class Main extends Application {
 							gl_FragColor = texture2D (uImage0, vTexCoord);
 						}";
 					
-					glProgram = GLProgram.fromSources (gl, vertexSource, fragmentSource);
+					glProgram = GLProgram.fromSources(gl,vertexSource, fragmentSource);
 					gl.useProgram (glProgram);
 					
 					glVertexAttribute = gl.getAttribLocation (glProgram, "aPosition");
@@ -185,32 +132,61 @@ class Main extends Application {
 					gl.bindTexture (gl.TEXTURE_2D, glTexture);
 					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-					
 					#if js
 					gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image.src);
 					#else
 					gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, image.buffer.width, image.buffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image.data);
 					#end
-					
 					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 					gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 					gl.bindTexture (gl.TEXTURE_2D, null);
-					
+				
+				#end	
+				default:
+			}
+			
+		}
+		
+		switch (renderer.type) {
+			
+			case CAIRO:
+			#if !flash
+				var cairo = cast (GL.context,CairoRenderContext);
+				untyped {
+
+					var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;
+					var g = ((config.windows[0].background >> 8) & 0xFF) / 0xFF;
+					var b = (config.windows[0].background & 0xFF) / 0xFF;
+					var a = ((config.windows[0].background >> 24) & 0xFF) / 0xFF;
+					cairo.setSourceRGB (r, g, b);
 				}
+				cairo.paint ();
+				
+				image.format = BGRA32;
+				image.premultiplied = true;
+				
+				cairo.setSourceSurface (cairoSurface, 0, 0);
+				cairo.paint ();
+			#end
+			case OPENGL:
+				#if !flash
+				var gl = cast(GL.context,WebGL2RenderContext);
 				
 				gl.viewport (0, 0, window.width, window.height);
 				
-				var r = ((context.attributes.background >> 16) & 0xFF) / 0xFF;
-				var g = ((context.attributes.background >> 8) & 0xFF) / 0xFF;
-				var b = (context.attributes.background & 0xFF) / 0xFF;
-				var a = ((context.attributes.background >> 24) & 0xFF) / 0xFF;
-				
-				gl.clearColor (r, g, b, a);
+				untyped {
+					var r = ((config.windows[0].background >> 16) & 0xFF) / 0xFF;
+					var g = ((config.windows[0].background >> 8) & 0xFF) / 0xFF;
+					var b = (config.windows[0].background & 0xFF) / 0xFF;
+					var a = ((config.windows[0].background >> 24) & 0xFF) / 0xFF;
+					
+					gl.clearColor (r, g, b, a);
+
+				}
 				gl.clear (gl.COLOR_BUFFER_BIT);
 				
 				if (image != null) {
-					
-					var matrix = new Matrix4 ();
+					var matrix = new Matrix4();
 					matrix.createOrtho (0, window.width, window.height, 0, -1000, 1000);
 					gl.uniformMatrix4fv (glMatrixUniform, false, matrix);
 					
@@ -228,7 +204,7 @@ class Main extends Application {
 					gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
 					
 				}
-			
+				#end
 			default:
 			
 		}

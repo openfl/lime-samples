@@ -6,5 +6,6 @@
 	<sample path="features/graphics" />
 	<sample path="features/input" />
 	<sample path="features/text" />
+	<sample path="features/app" />
 	
 </extension>

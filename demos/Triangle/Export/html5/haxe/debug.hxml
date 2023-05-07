@@ -1,0 +1,21 @@
+-main ApplicationMain 
+--macro lime._internal.macros.DefineMacro.run()
+-cp /home/ryn/haxelib/lime/8,0,1/src
+-D lime=8.0.1
+-cp Source
+-D tools=8.0.1
+-D lime-canvas
+-D howlerjs
+-D no-compilation
+-D disable_preloader_assets=1
+-D lime-webgl
+-D lime-dom
+-D lime-howlerjs
+-D lime-html5
+-D html5
+-D web
+-js Export/html5/bin/HelloWorld.js
+-cp Export/html5/haxe
+-D html5
+-D html
+-debug

@@ -1,0 +1,6 @@
+lime.mp4
+
+    Generated procedurally for this sample: a moving gradient, a bouncing
+    ball and an arpeggio of sine tones, encoded as H.264 with AAC audio.
+
+    It is released under the same license as the Lime samples.

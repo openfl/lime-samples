@@ -42,7 +42,9 @@ import samples.FPSCounter;
 
 	C switches what the clock follows: the sound, smoothly (smooth), the sound
 	as it is heard (audio), the sound between mixes (interpolated), or the
-	system timer, with the sound kept in step (monotonic).
+	system timer, with the sound kept in step (monotonic). T switches the
+	frame rate the window is capped at, and the counter in the corner shows
+	the rate reached.
 **/
 class Main extends Application
 {
@@ -51,6 +53,7 @@ class Main extends Application
 
 	private static var CLOCK_MODES:Array<VideoClockMode> = [VideoClockMode.SMOOTH, VideoClockMode.AUDIO, VideoClockMode.INTERPOLATED, VideoClockMode.MONOTONIC];
 	private static var CLOCK_NAMES = ["smooth", "audio", "interpolated", "monotonic"];
+	private static var FRAME_RATES = [30, 60, 120, 240];
 	private static var RENDER_FORMATS:Array<VideoFrameFormat> = [VideoFrameFormat.TEXTURE, VideoFrameFormat.NV12, VideoFrameFormat.NV12, VideoFrameFormat.RGBA];
 	private static var RENDER_NAMES = ["Texture", "YUV shader", "GPU composite", "CPU upload"];
 
@@ -160,6 +163,9 @@ class Main extends Application
 
 			case C:
 				setClockMode((clockMode + 1) % CLOCK_MODES.length);
+
+			case T:
+				setFrameRate();
 			#end
 
 			default:
@@ -711,6 +717,14 @@ class Main extends Application
 		trace("Clock: " + CLOCK_NAMES[clockMode]);
 	}
 
+	private function setFrameRate():Void
+	{
+		// The next rate after the window's own, which can start at any rate
+		var index = (FRAME_RATES.indexOf(Std.int(window.frameRate)) + 1) % FRAME_RATES.length;
+		window.frameRate = FRAME_RATES[index];
+		trace("Frame rate: " + FRAME_RATES[index]);
+	}
+
 	private function setGain(value:Float):Void
 	{
 		gain = Math.max(0, Math.min(1, value));
@@ -761,7 +775,7 @@ class Main extends Application
 
 		// Says which keys switch each, for anyone trying the sample
 		var text = title + " - " + RENDER_NAMES[renderPath] + " (R to switch) - " + CLOCK_NAMES[clockMode] + " clock (C to switch) - "
-			+ video.droppedFrames + " dropped";
+			+ Std.int(window.frameRate) + " fps cap (T to switch) - " + video.droppedFrames + " dropped";
 		if (window.title != text) window.title = text;
 		#end
 	}

@@ -30,7 +30,7 @@ import lime.utils.UInt8Array;
 		<haxelib name="lime-samples" />
 
 	The digits are rasterized once into a small atlas, with `Font.renderGlyph`
-	on native targets, or a canvas on HTML5. Each frame then draws a handful
+	on native targets, or a canvas in the browser's monospace font on HTML5. Each frame then draws a handful
 	of quads in two draw calls, and the text is only laid out again when the
 	numbers change, twice a second. The GL state it changes is put back, so it
 	can be added to a sample that sets its state up only once. OpenGL, OpenGL
@@ -444,14 +444,12 @@ class FPSCounter
 	{
 		// Renders the characters once into one coverage image, with an opaque
 		// row at the bottom for the background
-		if (!Assets.isLocal(FONT_ID)) return null;
-
-		var font = Assets.getFont(FONT_ID);
-		if (font == null) return null;
-
 		glyphs = new Map();
 
 		#if (lime_cffi && !macro)
+		var font = Assets.isLocal(FONT_ID) ? Assets.getFont(FONT_ID) : null;
+		if (font == null) return null;
+
 		// Each glyph is rendered once, and packed side by side into the atlas
 		var points = Std.int(FONT_POINTS * window.scale + 0.5);
 		var images = [];
@@ -528,7 +526,7 @@ class FPSCounter
 
 		return coverage;
 		#elseif (js && html5)
-		// The browser draws the font, so the atlas comes from a canvas
+		// The browser draws its own monospace font, so the atlas comes from a canvas
 		var size = Std.int(13 * window.scale + 0.5);
 		var cell = Std.int(size * 1.4);
 		var canvas = js.Browser.document.createCanvasElement();
@@ -536,7 +534,7 @@ class FPSCounter
 		canvas.height = cell + 1;
 
 		var ctx = canvas.getContext2d();
-		ctx.font = size + "px '" + font.name + "', monospace";
+		ctx.font = size + "px monospace";
 		ctx.fillStyle = "#ffffff";
 		ctx.textBaseline = "alphabetic";
 		ctx.fillRect(0, cell, canvas.width, 1);

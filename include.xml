@@ -10,6 +10,7 @@
 	
 	<!-- Shared by samples that include the lime-samples haxelib -->
 	<source path="shared/Source" />
-	<assets path="shared/Assets" rename="lime-samples" />
+	<!-- HTML5 draws with the browser's monospace font instead -->
+	<assets path="shared/Assets" rename="lime-samples" unless="html5" />
 	
 </extension>

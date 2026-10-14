@@ -2,6 +2,7 @@ package;
 
 import haxe.Timer;
 import lime.app.Application;
+import lime.app.FrameProfile;
 import lime.graphics.opengl.GLBuffer;
 import lime.graphics.opengl.GLFramebuffer;
 import lime.graphics.opengl.GLProgram;
@@ -43,8 +44,9 @@ import samples.FPSCounter;
 	C switches what the clock follows: the sound, smoothly (smooth), the sound
 	as it is heard (audio), the sound between mixes (interpolated), or the
 	system timer, with the sound kept in step (monotonic). T switches the
-	frame rate the window is capped at, and the counter in the corner shows
-	the rate reached.
+	frame rate the window is capped at, up to 1000 or uncapped, and the
+	counter in the corner shows the rate reached. Vertical sync can still hold
+	the rate to the display's.
 **/
 class Main extends Application
 {
@@ -53,7 +55,8 @@ class Main extends Application
 
 	private static var CLOCK_MODES:Array<VideoClockMode> = [VideoClockMode.SMOOTH, VideoClockMode.AUDIO, VideoClockMode.INTERPOLATED, VideoClockMode.MONOTONIC];
 	private static var CLOCK_NAMES = ["smooth", "audio", "interpolated", "monotonic"];
-	private static var FRAME_RATES = [30, 60, 120, 240];
+	// 0 is uncapped
+	private static var FRAME_RATES = [30, 60, 120, 240, 1000, 0];
 	private static var RENDER_FORMATS:Array<VideoFrameFormat> = [VideoFrameFormat.TEXTURE, VideoFrameFormat.NV12, VideoFrameFormat.NV12, VideoFrameFormat.RGBA];
 	private static var RENDER_NAMES = ["Texture", "YUV shader", "GPU composite", "CPU upload"];
 
@@ -720,9 +723,20 @@ class Main extends Application
 	private function setFrameRate():Void
 	{
 		// The next rate after the window's own, which can start at any rate
-		var index = (FRAME_RATES.indexOf(Std.int(window.frameRate)) + 1) % FRAME_RATES.length;
-		window.frameRate = FRAME_RATES[index];
-		trace("Frame rate: " + FRAME_RATES[index]);
+		var current = frameProfile == FrameProfile.Uncapped ? 0 : Std.int(window.frameRate);
+		var rate = FRAME_RATES[(FRAME_RATES.indexOf(current) + 1) % FRAME_RATES.length];
+
+		if (rate == 0)
+		{
+			frameProfile = FrameProfile.Uncapped;
+		}
+		else
+		{
+			frameProfile = FrameProfile.Balanced;
+			window.frameRate = rate;
+		}
+
+		trace("Frame rate: " + (rate == 0 ? "uncapped" : Std.string(rate)));
 	}
 
 	private function setGain(value:Float):Void
@@ -775,7 +789,8 @@ class Main extends Application
 
 		// Says which keys switch each, for anyone trying the sample
 		var text = title + " - " + RENDER_NAMES[renderPath] + " (R to switch) - " + CLOCK_NAMES[clockMode] + " clock (C to switch) - "
-			+ Std.int(window.frameRate) + " fps cap (T to switch) - " + video.droppedFrames + " dropped";
+			+ (frameProfile == FrameProfile.Uncapped ? "uncapped" : Std.int(window.frameRate) + " fps cap") + " (T to switch) - "
+			+ video.droppedFrames + " dropped";
 		if (window.title != text) window.title = text;
 		#end
 	}

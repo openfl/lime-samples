@@ -3,13 +3,17 @@ package;
 import haxe.Timer;
 import lime.app.Application;
 import lime.graphics.opengl.GLBuffer;
+import lime.graphics.opengl.GLFramebuffer;
 import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLTexture;
 import lime.graphics.opengl.GLUniformLocation;
 import lime.graphics.RenderContext;
 import lime.graphics.WebGLRenderContext;
 import lime.math.Matrix4;
+import lime.media.VideoClockMode;
+import lime.media.VideoColorMatrix;
 import lime.media.VideoFrame;
+import lime.media.VideoFrameFormat;
 import lime.media.VideoSource;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
@@ -23,50 +27,96 @@ import lime.utils.Float32Array;
 	seeks, shows the time and sets the volume, and fades away during playback.
 	The arrow keys skip and change the volume, M mutes, and F or a double click
 	switches to full screen. Drop a video file on the window to play it.
+
+	On native targets, R switches how frames reach the screen, and the window
+	title shows which, along with how many frames were dropped:
+
+	- Texture: the platform decodes into a GPU texture where it can, which is
+	  drawn as it is, and Lime uploads the frame for it where it cannot
+	- YUV shader: the NV12 planes of each frame are uploaded, and a shader
+	  converts them to RGB as they are drawn
+	- GPU composite: the planes are converted to an RGB texture first, which is
+	  then drawn, as a frame used more than once would be
+	- CPU upload: each frame is converted to RGBA on the CPU and uploaded
+
+	C switches what the clock follows: the sound, smoothly (smooth), the sound
+	as it is heard (audio), the sound between mixes (interpolated), or the
+	system timer, with the sound kept in step (monotonic).
 **/
 class Main extends Application
 {
 	private static inline var BAR_HEIGHT = 44;
 	private static inline var HIDE_DELAY = 2.5;
 
+	private static var CLOCK_MODES:Array<VideoClockMode> = [VideoClockMode.SMOOTH, VideoClockMode.AUDIO, VideoClockMode.INTERPOLATED, VideoClockMode.MONOTONIC];
+	private static var CLOCK_NAMES = ["smooth", "audio", "interpolated", "monotonic"];
+	private static var RENDER_FORMATS:Array<VideoFrameFormat> = [VideoFrameFormat.TEXTURE, VideoFrameFormat.NV12, VideoFrameFormat.NV12, VideoFrameFormat.RGBA];
+	private static var RENDER_NAMES = ["Texture", "YUV shader", "GPU composite", "CPU upload"];
+
+	private static inline var RENDER_TEXTURE = 0;
+	private static inline var RENDER_YUV_SHADER = 1;
+	private static inline var RENDER_GPU_COMPOSITE = 2;
+	private static inline var RENDER_CPU_UPLOAD = 3;
+
+	private var clockMode:Int;
 	private var frame:VideoFrame;
 	private var gain:Float;
 	private var hasFrame:Bool;
 	private var lastClick:Float;
 	private var lastMouseMove:Float;
 	private var lastSeek:Float;
+	private var loads:Int;
 	private var mouseX:Float;
 	private var mouseY:Float;
 	private var muted:Bool;
+	private var renderPath:Int;
 	private var seekPosition:Float;
 	private var seeking:Bool;
 	private var settingVolume:Bool;
+	private var title:String;
 	private var video:VideoSource;
 
+	private var chromaTexture:GLTexture;
+	private var compositeFramebuffer:GLFramebuffer;
+	private var compositeHeight:Int;
+	private var compositeTexture:GLTexture;
+	private var compositeWidth:Int;
+	private var lumaTexture:GLTexture;
 	private var uiBuffer:GLBuffer;
 	private var uiColorAttribute:Int;
 	private var uiMatrixUniform:GLUniformLocation;
 	private var uiPositionAttribute:Int;
 	private var uiProgram:GLProgram;
 	private var uiVertices:Array<Float>;
+	private var uploadHeight:Int;
+	private var uploadWidth:Int;
 	private var videoBuffer:GLBuffer;
 	private var videoMatrixUniform:GLUniformLocation;
 	private var videoPositionAttribute:Int;
 	private var videoProgram:GLProgram;
 	private var videoTexCoordAttribute:Int;
 	private var videoTexture:GLTexture;
+	private var yuvMatrixUniform:GLUniformLocation;
+	private var yuvOffsetUniform:GLUniformLocation;
+	private var yuvPositionAttribute:Int;
+	private var yuvProgram:GLProgram;
+	private var yuvTexCoordAttribute:Int;
+	private var yuvTransformUniform:GLUniformLocation;
 
 	public function new()
 	{
 		super();
 
+		clockMode = 0;
 		frame = new VideoFrame();
 		gain = 1;
 		lastClick = 0;
 		lastMouseMove = Timer.stamp();
 		lastSeek = 0;
+		loads = 0;
 		mouseX = -1;
 		mouseY = -1;
+		renderPath = RENDER_TEXTURE;
 		seekPosition = 0;
 		uiVertices = [];
 	}
@@ -97,6 +147,14 @@ class Main extends Application
 
 			case F:
 				window.fullscreen = !window.fullscreen;
+
+			#if !(js && html5)
+			case R:
+				setRenderPath((renderPath + 1) % RENDER_NAMES.length);
+
+			case C:
+				setClockMode((clockMode + 1) % CLOCK_MODES.length);
+			#end
 
 			default:
 		}
@@ -178,6 +236,8 @@ class Main extends Application
 			return;
 		}
 
+		title = window.title;
+
 		var path = "assets/lime.mp4";
 
 		#if sys
@@ -187,12 +247,12 @@ class Main extends Application
 		}
 		#end
 
-		open(path);
+		open(path, 0, true);
 	}
 
 	public override function onWindowDropFile(file:String):Void
 	{
-		open(file);
+		open(file, 0, true);
 	}
 
 	public override function render(context:RenderContext):Void
@@ -240,6 +300,8 @@ class Main extends Application
 					// WebGL uploads the <video> element directly
 					gl.bindTexture(gl.TEXTURE_2D, videoTexture);
 					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frame.src);
+					#else
+					uploadFrame(gl);
 					#end
 				}
 
@@ -253,8 +315,52 @@ class Main extends Application
 				if (hasFrame) drawVideo(gl, matrix);
 				if (video != null) drawControls(gl, matrix);
 
+				updateTitle();
+
 			default:
 		}
+	}
+
+	private function composite(gl:WebGLRenderContext):Void
+	{
+		// Converts the planes into an RGB texture the size of the frame, once,
+		// which can then be drawn like any other texture
+		if (compositeFramebuffer == null)
+		{
+			compositeFramebuffer = gl.createFramebuffer();
+			compositeTexture = createTexture(gl);
+		}
+
+		gl.bindTexture(gl.TEXTURE_2D, compositeTexture);
+
+		if (compositeWidth != frame.width || compositeHeight != frame.height)
+		{
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, frame.width, frame.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+			compositeWidth = frame.width;
+			compositeHeight = frame.height;
+		}
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, compositeFramebuffer);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, compositeTexture, 0);
+		gl.viewport(0, 0, frame.width, frame.height);
+
+		// The texture keeps the top row of the picture first, as frames do
+		var matrix = new Matrix4();
+		matrix.createOrtho(0, frame.width, 0, frame.height, -1000, 1000);
+		drawYUV(gl, matrix, 0, 0, frame.width, frame.height);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	}
+
+	private function createTexture(gl:WebGLRenderContext):GLTexture
+	{
+		var texture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		return texture;
 	}
 
 	private function drawControls(gl:WebGLRenderContext, matrix:Matrix4):Void
@@ -347,11 +453,8 @@ class Main extends Application
 		gl.disable(gl.BLEND);
 	}
 
-	private function drawVideo(gl:WebGLRenderContext, matrix:Matrix4):Void
+	private function drawQuad(gl:WebGLRenderContext, positionAttribute:Int, texCoordAttribute:Int, left:Float, top:Float, right:Float, bottom:Float):Void
 	{
-		var rect = getVideoRect();
-		var left = rect[0], top = rect[1], right = rect[0] + rect[2], bottom = rect[1] + rect[3];
-
 		// Texture frames start with the top row of the picture
 		var data = [
 
@@ -362,6 +465,29 @@ class Main extends Application
 
 		];
 
+		gl.bindBuffer(gl.ARRAY_BUFFER, videoBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+		gl.enableVertexAttribArray(positionAttribute);
+		gl.enableVertexAttribArray(texCoordAttribute);
+		gl.vertexAttribPointer(positionAttribute, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
+		gl.vertexAttribPointer(texCoordAttribute, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
+		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+		gl.disableVertexAttribArray(positionAttribute);
+		gl.disableVertexAttribArray(texCoordAttribute);
+	}
+
+	private function drawVideo(gl:WebGLRenderContext, matrix:Matrix4):Void
+	{
+		var rect = getVideoRect();
+
+		#if !(js && html5)
+		if (renderPath == RENDER_YUV_SHADER)
+		{
+			drawYUV(gl, matrix, rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]);
+			return;
+		}
+		#end
+
 		gl.useProgram(videoProgram);
 		gl.uniformMatrix4fv(videoMatrixUniform, false, matrix);
 
@@ -369,18 +495,54 @@ class Main extends Application
 		#if (js && html5)
 		gl.bindTexture(gl.TEXTURE_2D, videoTexture);
 		#else
-		gl.bindTexture(gl.TEXTURE_2D, frame.texture);
+		if (renderPath == RENDER_GPU_COMPOSITE) gl.bindTexture(gl.TEXTURE_2D, compositeTexture);
+		else if (renderPath == RENDER_CPU_UPLOAD) gl.bindTexture(gl.TEXTURE_2D, videoTexture);
+		else gl.bindTexture(gl.TEXTURE_2D, frame.texture);
 		#end
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, videoBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
-		gl.enableVertexAttribArray(videoPositionAttribute);
-		gl.enableVertexAttribArray(videoTexCoordAttribute);
-		gl.vertexAttribPointer(videoPositionAttribute, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
-		gl.vertexAttribPointer(videoTexCoordAttribute, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
-		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-		gl.disableVertexAttribArray(videoPositionAttribute);
-		gl.disableVertexAttribArray(videoTexCoordAttribute);
+		drawQuad(gl, videoPositionAttribute, videoTexCoordAttribute, rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]);
+	}
+
+	private function drawYUV(gl:WebGLRenderContext, matrix:Matrix4, left:Float, top:Float, right:Float, bottom:Float):Void
+	{
+		gl.useProgram(yuvProgram);
+		gl.uniformMatrix4fv(yuvTransformUniform, false, matrix);
+
+		// Each frame says how its YCbCr samples become RGB
+		var kr = 0.2126;
+		var kb = 0.0722;
+
+		if (frame.colorMatrix == VideoColorMatrix.BT601)
+		{
+			kr = 0.299;
+			kb = 0.114;
+		}
+		else if (frame.colorMatrix == VideoColorMatrix.BT2020)
+		{
+			kr = 0.2627;
+			kb = 0.0593;
+		}
+
+		var kg = 1 - kr - kb;
+
+		// Video range spreads luma 16-235 and chroma 16-240 over the full range
+		var lumaScale = frame.fullRange ? 1.0 : 255 / 219;
+		var chromaScale = frame.fullRange ? 1.0 : 255 / 224;
+
+		// Columns for Y, Cb and Cr
+		gl.uniformMatrix3fv(yuvMatrixUniform, false, new Float32Array([
+			lumaScale, lumaScale, lumaScale,
+			0, -2 * (1 - kb) * kb / kg * chromaScale, 2 * (1 - kb) * chromaScale,
+			2 * (1 - kr) * chromaScale, -2 * (1 - kr) * kr / kg * chromaScale, 0
+		]));
+		gl.uniform3f(yuvOffsetUniform, frame.fullRange ? 0 : 16 / 255, 128 / 255, 128 / 255);
+
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, chromaTexture);
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, lumaTexture);
+
+		drawQuad(gl, yuvPositionAttribute, yuvTexCoordAttribute, left, top, right, bottom);
 	}
 
 	private function getControlsAlpha():Float
@@ -419,7 +581,7 @@ class Main extends Application
 	{
 		var precision = #if !desktop "precision mediump float;" #else "" #end;
 
-		videoProgram = GLProgram.fromSources(gl, "attribute vec2 aPosition;
+		var vertexSource = "attribute vec2 aPosition;
 			attribute vec2 aTexCoord;
 			varying vec2 vTexCoord;
 			uniform mat4 uMatrix;
@@ -427,7 +589,9 @@ class Main extends Application
 			void main(void) {
 				vTexCoord = aTexCoord;
 				gl_Position = uMatrix * vec4(aPosition, 0.0, 1.0);
-			}", precision + "varying vec2 vTexCoord;
+			}";
+
+		videoProgram = GLProgram.fromSources(gl, vertexSource, precision + "varying vec2 vTexCoord;
 			uniform sampler2D uImage0;
 
 			void main(void) {
@@ -440,6 +604,28 @@ class Main extends Application
 		gl.useProgram(videoProgram);
 		gl.uniform1i(gl.getUniformLocation(videoProgram, "uImage0"), 0);
 		videoBuffer = gl.createBuffer();
+
+		// NV12 has a full size luma plane, and a quarter size plane of Cb and Cr
+		// pairs, uploaded as luminance and alpha
+		yuvProgram = GLProgram.fromSources(gl, vertexSource, precision + "varying vec2 vTexCoord;
+			uniform sampler2D uLuma;
+			uniform sampler2D uChroma;
+			uniform mat3 uYUVMatrix;
+			uniform vec3 uYUVOffset;
+
+			void main(void) {
+				vec3 yuv = vec3(texture2D(uLuma, vTexCoord).r, texture2D(uChroma, vTexCoord).ra) - uYUVOffset;
+				gl_FragColor = vec4(clamp(uYUVMatrix * yuv, 0.0, 1.0), 1.0);
+			}");
+
+		yuvPositionAttribute = gl.getAttribLocation(yuvProgram, "aPosition");
+		yuvTexCoordAttribute = gl.getAttribLocation(yuvProgram, "aTexCoord");
+		yuvTransformUniform = gl.getUniformLocation(yuvProgram, "uMatrix");
+		yuvMatrixUniform = gl.getUniformLocation(yuvProgram, "uYUVMatrix");
+		yuvOffsetUniform = gl.getUniformLocation(yuvProgram, "uYUVOffset");
+		gl.useProgram(yuvProgram);
+		gl.uniform1i(gl.getUniformLocation(yuvProgram, "uLuma"), 0);
+		gl.uniform1i(gl.getUniformLocation(yuvProgram, "uChroma"), 1);
 
 		uiProgram = GLProgram.fromSources(gl, "attribute vec2 aPosition;
 			attribute vec4 aColor;
@@ -460,28 +646,37 @@ class Main extends Application
 		uiMatrixUniform = gl.getUniformLocation(uiProgram, "uMatrix");
 		uiBuffer = gl.createBuffer();
 
-		#if (js && html5)
-		videoTexture = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, videoTexture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-		#end
+		chromaTexture = createTexture(gl);
+		lumaTexture = createTexture(gl);
+		videoTexture = createTexture(gl);
 	}
 
-	private function open(path:String):Void
+	private function open(path:String, time:Int, play:Bool):Void
 	{
-		// Texture frames stay on the GPU when the platform decodes there, so
-		// drawing them is all that is left to do
-		VideoSource.loadFromFile(path, TEXTURE).onComplete(function(source)
+		// The format is chosen when a video opens, so switching how frames are
+		// drawn opens it again, where it was. The last video plays on until the
+		// next one is ready, and a video opened since makes this one stale.
+		var load = ++loads;
+
+		VideoSource.loadFromFile(path, RENDER_FORMATS[renderPath]).onComplete(function(source)
 		{
+			if (load != loads)
+			{
+				source.dispose();
+				return;
+			}
+
 			if (video != null) video.dispose();
 
 			video = source;
+			video.clockMode = CLOCK_MODES[clockMode];
 			video.gain = muted ? 0 : gain;
 			hasFrame = false;
-			video.play();
+			uploadWidth = 0;
+			uploadHeight = 0;
+
+			if (time > 0) video.currentTime = time;
+			if (play) video.play();
 		}).onError(function(error)
 		{
 			trace(error);
@@ -503,11 +698,25 @@ class Main extends Application
 		}
 	}
 
+	private function setClockMode(index:Int):Void
+	{
+		clockMode = index;
+		if (video != null) video.clockMode = CLOCK_MODES[clockMode];
+		trace("Clock: " + CLOCK_NAMES[clockMode]);
+	}
+
 	private function setGain(value:Float):Void
 	{
 		gain = Math.max(0, Math.min(1, value));
 		muted = false;
 		if (video != null) video.gain = gain;
+	}
+
+	private function setRenderPath(index:Int):Void
+	{
+		renderPath = index;
+		trace("Render path: " + RENDER_NAMES[renderPath]);
+		if (video != null) open(video.source, video.currentTime, video.playing);
 	}
 
 	private function setVolumeAt(x:Float):Void
@@ -537,6 +746,52 @@ class Main extends Application
 		if (video == null) return;
 
 		if (video.playing) video.pause() else video.play();
+	}
+
+	private function updateTitle():Void
+	{
+		#if !(js && html5)
+		if (video == null || title == null) return;
+
+		var text = title + " - " + RENDER_NAMES[renderPath] + ", " + CLOCK_NAMES[clockMode] + " clock, " + video.droppedFrames + " dropped";
+		if (window.title != text) window.title = text;
+		#end
+	}
+
+	private function uploadFrame(gl:WebGLRenderContext):Void
+	{
+		// Texture frames are already on the GPU
+		if (frame.format == VideoFrameFormat.TEXTURE) return;
+
+		// Rows of planes with odd widths are not padded
+		gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+
+		var resized = frame.width != uploadWidth || frame.height != uploadHeight;
+		uploadWidth = frame.width;
+		uploadHeight = frame.height;
+
+		if (frame.format == VideoFrameFormat.RGBA)
+		{
+			gl.bindTexture(gl.TEXTURE_2D, videoTexture);
+			var pixels = frame.data.subarray(0, frame.width * frame.height * 4);
+
+			if (resized) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, frame.width, frame.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+			else gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, frame.width, frame.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+			return;
+		}
+
+		var luma = frame.data.subarray(0, frame.chromaOffset);
+		var chroma = frame.data.subarray(frame.chromaOffset, frame.chromaOffset + frame.chromaWidth * frame.chromaHeight * 2);
+
+		gl.bindTexture(gl.TEXTURE_2D, lumaTexture);
+		if (resized) gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, frame.width, frame.height, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, luma);
+		else gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, frame.width, frame.height, gl.LUMINANCE, gl.UNSIGNED_BYTE, luma);
+
+		gl.bindTexture(gl.TEXTURE_2D, chromaTexture);
+		if (resized) gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE_ALPHA, frame.chromaWidth, frame.chromaHeight, 0, gl.LUMINANCE_ALPHA, gl.UNSIGNED_BYTE, chroma);
+		else gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, frame.chromaWidth, frame.chromaHeight, gl.LUMINANCE_ALPHA, gl.UNSIGNED_BYTE, chroma);
+
+		if (renderPath == RENDER_GPU_COMPOSITE) composite(gl);
 	}
 
 	// Drawing helpers, adding triangles of x, y, r, g, b, a

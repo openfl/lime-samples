@@ -3,6 +3,8 @@ package;
 import haxe.Timer;
 import lime.app.Application;
 import lime.app.FrameProfile;
+import lime.app.UncapMode;
+import lime.app.VSyncMode;
 import lime.graphics.opengl.GLBuffer;
 import lime.graphics.opengl.GLFramebuffer;
 import lime.graphics.opengl.GLProgram;
@@ -45,8 +47,8 @@ import samples.FPSCounter;
 	as it is heard (audio), the sound between mixes (interpolated), or the
 	system timer, with the sound kept in step (monotonic). T switches the
 	frame rate the window is capped at, up to 1000 or uncapped, and the
-	counter in the corner shows the rate reached. Vertical sync can still hold
-	the rate to the display's.
+	counter in the corner shows the rate reached. Uncapped also turns vertical
+	sync off, which would hold the rate to the display's.
 **/
 class Main extends Application
 {
@@ -67,6 +69,7 @@ class Main extends Application
 
 	private var clockMode:Int;
 	private var frame:VideoFrame;
+	private var cappedVSyncMode:VSyncMode;
 	private var gain:Float;
 	private var hasFrame:Bool;
 	private var lastClick:Float;
@@ -728,11 +731,21 @@ class Main extends Application
 
 		if (rate == 0)
 		{
+			// Uncapped also stops waiting for the display, which vertical sync does
+			cappedVSyncMode = vsyncMode;
+			vsyncMode = VSyncMode.Off;
 			frameProfile = FrameProfile.Uncapped;
+			frameOptions = {uncapMode: UncapMode.Hard};
 		}
 		else
 		{
-			frameProfile = FrameProfile.Balanced;
+			if (frameProfile == FrameProfile.Uncapped)
+			{
+				frameOptions = {uncapMode: UncapMode.Off};
+				frameProfile = FrameProfile.Balanced;
+				if (cappedVSyncMode != null) vsyncMode = cappedVSyncMode;
+			}
+
 			window.frameRate = rate;
 		}
 

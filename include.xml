@@ -8,4 +8,8 @@
 	<sample path="features/text" />
 	<sample path="features/app" />
 	
+	<!-- Shared by samples that include the lime-samples haxelib -->
+	<source path="shared/Source" />
+	<assets path="shared/Assets" rename="lime-samples" />
+	
 </extension>

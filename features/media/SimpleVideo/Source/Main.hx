@@ -753,7 +753,9 @@ class Main extends Application
 		#if !(js && html5)
 		if (video == null || title == null) return;
 
-		var text = title + " - " + RENDER_NAMES[renderPath] + ", " + CLOCK_NAMES[clockMode] + " clock, " + video.droppedFrames + " dropped";
+		// Says which keys switch each, for anyone trying the sample
+		var text = title + " - " + RENDER_NAMES[renderPath] + " (R to switch) - " + CLOCK_NAMES[clockMode] + " clock (C to switch) - "
+			+ video.droppedFrames + " dropped";
 		if (window.title != text) window.title = text;
 		#end
 	}

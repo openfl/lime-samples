@@ -8,6 +8,7 @@ import lime.ui.KeyModifier;
 import lime.utils.Assets;
 import lime.utils.Log;
 import render.GLRenderer;
+import samples.FPSCounter;
 
 class Main extends Application
 {
@@ -57,6 +58,11 @@ class Main extends Application
 		addingBunnies = false;
 
 		trace('${bunnies.length} bunnies @ ${fps.current} FPS');
+	}
+
+	public override function onWindowCreate():Void
+	{
+		new FPSCounter(window);
 	}
 
 	public override function onPreloadComplete():Void

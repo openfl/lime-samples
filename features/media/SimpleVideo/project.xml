@@ -9,6 +9,7 @@
 	<source path="Source" />
 	
 	<haxelib name="lime" />
+	<haxelib name="lime-samples" />
 	
 	<assets path="Assets" rename="assets" />
 	

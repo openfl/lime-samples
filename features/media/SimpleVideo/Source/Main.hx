@@ -19,6 +19,7 @@ import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
 import lime.ui.MouseButton;
 import lime.utils.Float32Array;
+import samples.FPSCounter;
 
 /**
 	A small video player.
@@ -119,6 +120,11 @@ class Main extends Application
 		renderPath = RENDER_TEXTURE;
 		seekPosition = 0;
 		uiVertices = [];
+	}
+
+	public override function onWindowCreate():Void
+	{
+		new FPSCounter(window);
 	}
 
 	public override function onKeyDown(keyCode:KeyCode, modifier:KeyModifier):Void

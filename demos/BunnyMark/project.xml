@@ -13,6 +13,7 @@
 	<define name="stats" if="html5" />
 	
 	<haxelib name="lime" />
+	<haxelib name="lime-samples" />
 	
 	<assets path="Assets" rename="assets" />
 	

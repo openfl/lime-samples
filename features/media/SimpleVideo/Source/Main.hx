@@ -726,23 +726,23 @@ class Main extends Application
 	private function setFrameRate():Void
 	{
 		// The next rate after the window's own, which can start at any rate
-		var current = frameProfile == FrameProfile.Uncapped ? 0 : Std.int(window.frameRate);
+		var current = frameProfile == FrameProfile.UNCAPPED ? 0 : Std.int(window.frameRate);
 		var rate = FRAME_RATES[(FRAME_RATES.indexOf(current) + 1) % FRAME_RATES.length];
 
 		if (rate == 0)
 		{
 			// Uncapped also stops waiting for the display, which vertical sync does
 			cappedVSyncMode = vsyncMode;
-			vsyncMode = VSyncMode.Off;
-			frameProfile = FrameProfile.Uncapped;
-			frameOptions = {uncapMode: UncapMode.Hard};
+			vsyncMode = VSyncMode.OFF;
+			frameProfile = FrameProfile.UNCAPPED;
+			frameOptions = {uncapMode: UncapMode.HARD};
 		}
 		else
 		{
-			if (frameProfile == FrameProfile.Uncapped)
+			if (frameProfile == FrameProfile.UNCAPPED)
 			{
-				frameOptions = {uncapMode: UncapMode.Off};
-				frameProfile = FrameProfile.Balanced;
+				frameOptions = {uncapMode: UncapMode.OFF};
+				frameProfile = FrameProfile.BALANCED;
 				if (cappedVSyncMode != null) vsyncMode = cappedVSyncMode;
 			}
 
@@ -802,7 +802,7 @@ class Main extends Application
 
 		// Says which keys switch each, for anyone trying the sample
 		var text = title + " - " + RENDER_NAMES[renderPath] + " (R to switch) - " + CLOCK_NAMES[clockMode] + " clock (C to switch) - "
-			+ (frameProfile == FrameProfile.Uncapped ? "uncapped" : Std.int(window.frameRate) + " fps cap") + " (T to switch) - "
+			+ (frameProfile == FrameProfile.UNCAPPED ? "uncapped" : Std.int(window.frameRate) + " fps cap") + " (T to switch) - "
 			+ video.droppedFrames + " dropped";
 		if (window.title != text) window.title = text;
 		#end
